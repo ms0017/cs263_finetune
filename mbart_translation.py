@@ -1,15 +1,15 @@
-#!pip install datasets evaluate sacrebleu transformers==4.45.2
-
+# python=3.12.4
+#!pip install datasets==3.0.1 evaluate==0.4.3 sacrebleu==2.4.3 transformers==4.45.2 numpy==1.26.4 torch==2.5.0
 
 import warnings
 import torch, gc
 import os
 from datetime import datetime
-from functions import initialize_logs, import_data, mT5_Translator, evaluate_model
+from functions import initialize_logs, import_data, mBART_Translator, evaluate_model
 warnings.filterwarnings('ignore')
 gc.collect()
 torch.cuda.empty_cache()
-os.environ["CUDA_VISIBLE_DEVICES"]="0"
+
 
 if __name__ == "__main__":
     try: 
@@ -21,19 +21,17 @@ if __name__ == "__main__":
         dataset = import_data('IssakaAI/en-tw', subset=-1)
         
         # Initialize and train the translator
-        translator = mT5_Translator(
-        model_name="google/mt5-small",
-        max_length= 128,
-        batch_size= 16,
-        num_epochs= 3,
-        learning_rate= 1e-5,
-        weight_decay= 0.01,
-        output_dir=f"./{output_dir_name}",
-        device= None,
-        logger = logger,
-        src_col=src_col, 
-        tgt_col=tgt_col
-        )
+        translator = mBART_Translator(
+            model_name="facebook/mbart-large-50",
+            batch_size=32,
+            num_epochs=5,
+            learning_rate=1e-5,
+            output_dir=f"./{output_dir_name}",
+            src_lang="twi_GH",
+            tgt_lang="en_XX",
+            src_col=src_col,
+            tgt_col=tgt_col,
+            logger=logger)
         
         # Train
         logger.info("Beginning model training procedures")
@@ -43,6 +41,13 @@ if __name__ == "__main__":
         # Evaluate
         logger.info(f"Beginning sampled model evaluation")
         evaluate_model(translator, dataset, src_col, tgt_col, logger, subset=500)
+
+        # Save training completion status
+        with open(os.path.join(translator.output_dir, "training_completed.txt"), "w") as f:
+            f.write(f"Training completed at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+            f.write(f"Final metrics: {metrics}\n")
+        
+        logger.info("Translation pipeline completed successfully")
             
     except Exception as e:
         logger.error(f"Error in main execution: {str(e)}", exc_info=True)

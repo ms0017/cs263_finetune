@@ -23,7 +23,13 @@ from transformers import (
     MT5ForConditionalGeneration,
     MT5Tokenizer,
     Seq2SeqTrainer,
-    Seq2SeqTrainingArguments
+    Seq2SeqTrainingArguments,
+    # NllbTokenizer,
+    # NllbForConditionalGeneration,
+    AutoTokenizer, 
+    AutoModelForSeq2SeqLM,
+    M2M100ForConditionalGeneration,
+    M2M100Tokenizer,
 )
 import evaluate
 
@@ -422,10 +428,6 @@ class mT5_Translator:
         source_texts = [f"Translate {self.src_col} to {self.tgt_col}: " + text for text in examples[self.src_col]]
         target_texts = examples[self.tgt_col]
 
-        # Log example
-        self.logger.info(f"Sample {self.src_col} text: {source_texts[0]}")
-        self.logger.info(f"Sample {self.tgt_col} text: {target_texts[0]}")
-
         # Tokenize inputs
         model_inputs = self.tokenizer(
             source_texts,
@@ -662,5 +664,438 @@ class mT5_Translator:
     #         logger.error(f"Error during sample translation: {str(e)}", exc_info=True)
     #         raise
 
+class NLLB_Translator:
+    def __init__(
+        self,
+        model_name: str = "facebook/nllb-200-3.3B",
+        max_length: int = 128,
+        batch_size: int = 8,
+        num_epochs: int = 3,
+        learning_rate: float = 2e-5,
+        weight_decay: float = 0.01,
+        output_dir: str = "./nllb-translation",
+        src_lang: str = "twi_Latn",
+        tgt_lang: str = "eng_Latn",
+        src_col: str = "TWI",
+        tgt_col: str = "ENGLISH",
+        device: str = None,
+        logger = None
+    ):
+        self.model_name = model_name
+        self.max_length = max_length
+        self.batch_size = batch_size
+        self.num_epochs = num_epochs
+        self.learning_rate = learning_rate
+        self.weight_decay = weight_decay
+        self.output_dir = output_dir
+        self.src_lang = src_lang
+        self.tgt_lang = tgt_lang
+        self.src_col = src_col
+        self.tgt_col = tgt_col
+        self.logger = logger
+        
+        # Set device
+        self.device = device if device else ('cuda' if torch.cuda.is_available() else 'cpu')
+        
+        # Log initialization
+        self._log_init_params()
+        
+        # Initialize tokenizer and model
+        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
+        self.model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
+        
+        # Move model to device
+        self.model = self.model.to(self.device)
+        
+        # Setup metrics
+        self.metric = evaluate.load("bleu")
+        
+        # Log model parameters
+        total_params = sum(p.numel() for p in self.model.parameters())
+        trainable_params = sum(p.numel() for p in self.model.parameters() if p.requires_grad)
+        self.logger.info(f"Total parameters: {total_params:,}")
+        self.logger.info(f"Trainable parameters: {trainable_params:,}")
 
+    def _log_init_params(self):
+        self.logger.info("=== NLLB Translator Configuration ===")
+        self.logger.info(f"Model name: {self.model_name}")
+        self.logger.info(f"Max length: {self.max_length}")
+        self.logger.info(f"Batch size: {self.batch_size}")
+        self.logger.info(f"Number of epochs: {self.num_epochs}")
+        self.logger.info(f"Learning rate: {self.learning_rate}")
+        self.logger.info(f"Weight decay: {self.weight_decay}")
+        self.logger.info(f"Output directory: {self.output_dir}")
+        self.logger.info(f"Source language: {self.src_lang}")
+        self.logger.info(f"Target language: {self.tgt_lang}")
+        self.logger.info(f"Device: {self.device}")
+        self.logger.info("=" * 50)
 
+    def preprocess_function(self, examples: Dict) -> Dict:
+        try:
+            inputs = examples[self.src_col]
+            targets = examples[self.tgt_col]
+            
+            # Tokenize inputs
+            model_inputs = self.tokenizer(
+                inputs,
+                max_length=self.max_length,
+                padding="max_length",
+                truncation=True,
+                return_tensors="pt",
+                src_lang=self.src_lang
+            )
+            
+            # Tokenize targets
+            labels = self.tokenizer(
+                targets,
+                max_length=self.max_length,
+                padding="max_length",
+                truncation=True,
+                return_tensors="pt",
+                tgt_lang=self.tgt_lang
+            )
+            
+            model_inputs["labels"] = labels["input_ids"]
+            
+            # Move tensors to device
+            model_inputs = {k: v.to(self.device) for k, v in model_inputs.items()}
+            
+            return model_inputs
+            
+        except Exception as e:
+            self.logger.error(f"Error in preprocessing: {str(e)}")
+            raise
+
+    def compute_metrics(self, eval_preds) -> Dict:
+        try:
+            preds, labels = eval_preds
+            
+            # Decode predictions
+            labels = np.where(labels != -100, labels, self.tokenizer.pad_token_id)
+            decoded_preds = self.tokenizer.batch_decode(preds, skip_special_tokens=True)
+            decoded_labels = self.tokenizer.batch_decode(labels, skip_special_tokens=True)
+            
+            # Compute BLEU score
+            result = self.metric.compute(
+                predictions=decoded_preds,
+                references=[[label] for label in decoded_labels]
+            )
+            
+            return {"bleu": result["score"]}
+            
+        except Exception as e:
+            self.logger.error(f"Error computing metrics: {str(e)}")
+            return {"bleu": 0.0}
+
+    def train(self, dataset):
+        try:
+            # Process datasets
+            processed_datasets = dataset.map(
+                self.preprocess_function,
+                batched=True,
+                remove_columns=dataset["train"].column_names
+            )
+            
+            # Set up training arguments
+            training_args = Seq2SeqTrainingArguments(
+                output_dir=self.output_dir,
+                overwrite_output_dir=True,
+                evaluation_strategy="epoch",
+                do_predict=True,
+                learning_rate=self.learning_rate,
+                per_device_train_batch_size=self.batch_size,
+                per_device_eval_batch_size=self.batch_size,
+                weight_decay=self.weight_decay,
+                num_train_epochs=self.num_epochs,
+                predict_with_generate=True,
+                logging_dir=f"{self.output_dir}/logs",
+                save_strategy="epoch",
+                load_best_model_at_end=True,
+                metric_for_best_model="eval_bleu",
+                fp16=True,
+                fp16_opt_level="O1",
+                max_grad_norm=1.0,
+                warmup_steps=100,
+                logging_steps=10,
+                no_cuda=(self.device == 'cpu'),
+                generation_max_length=self.max_length,
+                generation_num_beams=4
+            )
+            
+            # Initialize trainer
+            trainer = Seq2SeqTrainer(
+                model=self.model,
+                args=training_args,
+                train_dataset=processed_datasets["train"],
+                eval_dataset=processed_datasets["test"],
+                tokenizer=self.tokenizer,
+                data_collator=DataCollatorForSeq2Seq(
+                    tokenizer=self.tokenizer,
+                    model=self.model,
+                    padding=True,
+                    return_tensors="pt"
+                ),
+                compute_metrics=self.compute_metrics
+            )
+            
+            # Train the model
+            self.logger.info("Starting training...")
+            trainer.train()
+            trainer.save_model(self.output_dir)
+            self.tokenizer.save_pretrained(self.output_dir)
+            self.logger.info(f"Model saved to {self.output_dir}")
+            
+            # Return evaluation metrics
+            self.logger.info("Starting evaluation...")
+            return trainer.evaluate()
+            
+        except Exception as e:
+            self.logger.error(f"Error during training: {str(e)}")
+            raise
+
+    def translate(self, text: str) -> str:
+        try:
+            # Prepare input
+            inputs = self.tokenizer(
+                text,
+                return_tensors="pt",
+                max_length=self.max_length,
+                padding=True,
+                truncation=True,
+                src_lang=self.src_lang
+            )
+            
+            # Move input tensors to device
+            inputs = {k: v.to(self.device) for k, v in inputs.items()}
+            
+            # Generate translation
+            translated = self.model.generate(
+                **inputs,
+                forced_bos_token_id=self.tokenizer.lang_code_to_id[self.tgt_lang],
+                max_length=self.max_length,
+                num_beams=4,
+                length_penalty=0.6,
+                early_stopping=True
+            )
+            
+            # Decode and return translation
+            return self.tokenizer.decode(translated[0], skip_special_tokens=True)
+            
+        except Exception as e:
+            self.logger.error(f"Error during translation: {str(e)}")
+            raise
+
+class M2M_Translator:
+    def __init__(
+        self,
+        model_name: str = "facebook/m2m100_1.2B",
+        max_length: int = 128,
+        batch_size: int = 8,
+        num_epochs: int = 3,
+        learning_rate: float = 2e-5,
+        weight_decay: float = 0.01,
+        output_dir: str = "./m2m-translation",
+        src_lang: str = "twi",
+        tgt_lang: str = "eng",
+        src_col: str = "TWI",
+        tgt_col: str = "ENGLISH",
+        device: str = None,
+        logger = None
+    ):
+        self.model_name = model_name
+        self.max_length = max_length
+        self.batch_size = batch_size
+        self.num_epochs = num_epochs
+        self.learning_rate = learning_rate
+        self.weight_decay = weight_decay
+        self.output_dir = output_dir
+        self.src_lang = src_lang
+        self.tgt_lang = tgt_lang
+        self.src_col = src_col
+        self.tgt_col = tgt_col
+        self.logger = logger
+        
+        # Set device
+        self.device = device if device else ('cuda' if torch.cuda.is_available() else 'cpu')
+        
+        # Initialize tokenizer and model
+        self.tokenizer = M2M100Tokenizer.from_pretrained(model_name)
+        self.model = M2M100ForConditionalGeneration.from_pretrained(model_name)
+        
+        # Move model to device
+        self.model = self.model.to(self.device)
+        
+        # Setup metrics
+        self.metric = evaluate.load("bleu")
+        
+        # Log initialization
+        self._log_init_params()
+
+    def _log_init_params(self):
+        self.logger.info("=== M2M Translator Configuration ===")
+        self.logger.info(f"Model name: {self.model_name}")
+        self.logger.info(f"Max length: {self.max_length}")
+        self.logger.info(f"Batch size: {self.batch_size}")
+        self.logger.info(f"Number of epochs: {self.num_epochs}")
+        self.logger.info(f"Learning rate: {self.learning_rate}")
+        self.logger.info(f"Weight decay: {self.weight_decay}")
+        self.logger.info(f"Source language: {self.src_lang}")
+        self.logger.info(f"Target language: {self.tgt_lang}")
+        self.logger.info(f"Device: {self.device}")
+        
+        # Log model size
+        total_params = sum(p.numel() for p in self.model.parameters())
+        trainable_params = sum(p.numel() for p in self.model.parameters() if p.requires_grad)
+        self.logger.info(f"Total parameters: {total_params:,}")
+        self.logger.info(f"Trainable parameters: {trainable_params:,}")
+        self.logger.info("=" * 50)
+
+    def preprocess_function(self, examples: Dict) -> Dict:
+        try:
+            # Set source language for tokenization
+            self.tokenizer.src_lang = self.src_lang
+            
+            inputs = examples[self.src_col]
+            targets = examples[self.tgt_col]
+            
+            # Tokenize inputs
+            model_inputs = self.tokenizer(
+                inputs,
+                max_length=self.max_length,
+                padding="max_length",
+                truncation=True,
+                return_tensors="pt"
+            )
+            
+            # Tokenize targets
+            with self.tokenizer.as_target_tokenizer():
+                labels = self.tokenizer(
+                    targets,
+                    max_length=self.max_length,
+                    padding="max_length",
+                    truncation=True,
+                    return_tensors="pt"
+                )
+            
+            model_inputs["labels"] = labels["input_ids"]
+            
+            # Move tensors to device
+            model_inputs = {k: v.to(self.device) for k, v in model_inputs.items()}
+            
+            return model_inputs
+            
+        except Exception as e:
+            self.logger.error(f"Error in preprocessing: {str(e)}")
+            raise
+
+    def compute_metrics(self, eval_preds) -> Dict:
+        try:
+            preds, labels = eval_preds
+            
+            # Decode predictions
+            labels = np.where(labels != -100, labels, self.tokenizer.pad_token_id)
+            decoded_preds = self.tokenizer.batch_decode(preds, skip_special_tokens=True)
+            decoded_labels = self.tokenizer.batch_decode(labels, skip_special_tokens=True)
+            
+            # Compute BLEU score
+            result = self.metric.compute(
+                predictions=decoded_preds,
+                references=[[label] for label in decoded_labels]
+            )
+            
+            return {"bleu": result["score"]}
+            
+        except Exception as e:
+            self.logger.error(f"Error computing metrics: {str(e)}")
+            return {"bleu": 0.0}
+
+    def train(self, dataset):
+        try:
+            # Process datasets
+            processed_datasets = dataset.map(
+                self.preprocess_function,
+                batched=True,
+                remove_columns=dataset["train"].column_names
+            )
+            
+            # Set up training arguments with gradient accumulation
+            training_args = Seq2SeqTrainingArguments(
+                output_dir=self.output_dir,
+                overwrite_output_dir=True,
+                evaluation_strategy="epoch",
+                learning_rate=self.learning_rate,
+                per_device_train_batch_size=self.batch_size,
+                per_device_eval_batch_size=self.batch_size,
+                gradient_accumulation_steps=4, 
+                weight_decay=self.weight_decay,
+                num_train_epochs=self.num_epochs,
+                predict_with_generate=True,
+                fp16=True,
+                fp16_opt_level="O1",
+                save_strategy="epoch",
+                load_best_model_at_end=True,
+                metric_for_best_model="eval_bleu",
+                greater_is_better=True,
+                warmup_steps=100,
+                logging_steps=10
+            )
+            
+            # Initialize trainer
+            trainer = Seq2SeqTrainer(
+                model=self.model,
+                args=training_args,
+                train_dataset=processed_datasets["train"],
+                eval_dataset=processed_datasets["test"],
+                tokenizer=self.tokenizer,
+                data_collator=DataCollatorForSeq2Seq(
+                    tokenizer=self.tokenizer,
+                    model=self.model,
+                    padding=True,
+                    return_tensors="pt"
+                ),
+                compute_metrics=self.compute_metrics
+            )
+            
+            # Train the model
+            self.logger.info("Starting training...")
+            trainer.train()
+            
+            # Save the model
+            trainer.save_model(self.output_dir)
+            self.tokenizer.save_pretrained(self.output_dir)
+            self.logger.info(f"Model saved to {self.output_dir}")
+            
+            return trainer.evaluate()
+            
+        except Exception as e:
+            self.logger.error(f"Error during training: {str(e)}")
+            raise
+
+    def translate(self, text: str) -> str:
+        try:
+            # Prepare input
+            self.tokenizer.src_lang = self.src_lang
+            inputs = self.tokenizer(
+                text, 
+                return_tensors="pt",
+                padding=True,
+                truncation=True,
+                max_length=self.max_length
+            ).to(self.device)
+            
+            # Generate translation
+            generated_tokens = self.model.generate(
+                **inputs,
+                forced_bos_token_id=self.tokenizer.get_lang_id(self.tgt_lang),
+                max_length=self.max_length,
+                num_beams=5,
+                length_penalty=1.0,
+                early_stopping=True
+            )
+            
+            # Decode and return translation
+            return self.tokenizer.batch_decode(generated_tokens, skip_special_tokens=True)[0]
+            
+        except Exception as e:
+            self.logger.error(f"Error during translation: {str(e)}")
+            raise
