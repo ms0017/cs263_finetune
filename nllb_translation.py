@@ -16,14 +16,14 @@ if __name__ == "__main__":
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         output_dir_name = f"nllb_{src_col}_{tgt_col}_{timestamp}"
         logger = initialize_logs("logs", output_dir_name)
-        dataset = import_data('IssakaAI/en-tw', subset=1000)
+        dataset = import_data('IssakaAI/en-tw', subset=-1)
         
         # Initialize and train the translator
         translator = NLLB_Translator(
             model_name="facebook/nllb-200-3.3B",
             max_length=128,
-            batch_size=32,
-            num_epochs=3,
+            batch_size=16,
+            num_epochs=1,
             learning_rate=1e-5,
             weight_decay=0.01,
             output_dir=f"./{output_dir_name}",
@@ -42,7 +42,7 @@ if __name__ == "__main__":
         
         # Evaluate
         logger.info("Beginning sampled model evaluation")
-        evaluate_model(translator, dataset, src_col, tgt_col, logger, subset=10)
+        evaluate_model(translator, dataset, src_col, tgt_col, logger, subset=1000)
 
         # Save training completion status
         with open(os.path.join(translator.output_dir, "training_completed.txt"), "w") as f:

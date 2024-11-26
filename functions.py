@@ -24,7 +24,7 @@ from transformers import (
     MT5Tokenizer,
     Seq2SeqTrainer,
     Seq2SeqTrainingArguments,
-    # NllbTokenizer,
+    NllbTokenizerFast,
     # NllbForConditionalGeneration,
     AutoTokenizer, 
     AutoModelForSeq2SeqLM,
@@ -664,6 +664,7 @@ class mT5_Translator:
     #         logger.error(f"Error during sample translation: {str(e)}", exc_info=True)
     #         raise
 
+# https://cointegrated.medium.com/how-to-fine-tune-a-nllb-200-model-for-translating-a-new-language-a37fc706b865
 class NLLB_Translator:
     def __init__(
         self,
@@ -701,7 +702,7 @@ class NLLB_Translator:
         self._log_init_params()
         
         # Initialize tokenizer and model
-        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
+        self.tokenizer = AutoTokenizer.from_pretrained(model_name, src_lang=self.src_lang, tgt_lang=self.tgt_lang)
         self.model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
         
         # Move model to device
@@ -715,6 +716,7 @@ class NLLB_Translator:
         trainable_params = sum(p.numel() for p in self.model.parameters() if p.requires_grad)
         self.logger.info(f"Total parameters: {total_params:,}")
         self.logger.info(f"Trainable parameters: {trainable_params:,}")
+        self.logger.info(f"Using {torch.cuda.device_count()} GPUs")
 
     def _log_init_params(self):
         self.logger.info("=== NLLB Translator Configuration ===")
@@ -742,7 +744,7 @@ class NLLB_Translator:
                 padding="max_length",
                 truncation=True,
                 return_tensors="pt",
-                src_lang=self.src_lang
+                # src_lang=self.src_lang
             )
             
             # Tokenize targets
@@ -752,7 +754,7 @@ class NLLB_Translator:
                 padding="max_length",
                 truncation=True,
                 return_tensors="pt",
-                tgt_lang=self.tgt_lang
+                # tgt_lang=self.tgt_lang
             )
             
             model_inputs["labels"] = labels["input_ids"]
@@ -804,7 +806,7 @@ class NLLB_Translator:
                 do_predict=True,
                 learning_rate=self.learning_rate,
                 per_device_train_batch_size=self.batch_size,
-                per_device_eval_batch_size=self.batch_size,
+                per_device_eval_batch_size=max(1, self.batch_size // 4),
                 weight_decay=self.weight_decay,
                 num_train_epochs=self.num_epochs,
                 predict_with_generate=True,
@@ -862,7 +864,7 @@ class NLLB_Translator:
                 max_length=self.max_length,
                 padding=True,
                 truncation=True,
-                src_lang=self.src_lang
+                # src_lang=self.src_lang
             )
             
             # Move input tensors to device
@@ -871,7 +873,7 @@ class NLLB_Translator:
             # Generate translation
             translated = self.model.generate(
                 **inputs,
-                forced_bos_token_id=self.tokenizer.lang_code_to_id[self.tgt_lang],
+                forced_bos_token_id=self.tokenizer.convert_tokens_to_ids(self.tgt_lang),
                 max_length=self.max_length,
                 num_beams=4,
                 length_penalty=0.6,
@@ -919,7 +921,7 @@ class M2M_Translator:
         self.device = device if device else ('cuda' if torch.cuda.is_available() else 'cpu')
         
         # Initialize tokenizer and model
-        self.tokenizer = M2M100Tokenizer.from_pretrained(model_name)
+        self.tokenizer = M2M100Tokenizer.from_pretrained(model_name, src_lang=self.src_lang, tgt_lang=self.tgt_lang)
         self.model = M2M100ForConditionalGeneration.from_pretrained(model_name)
         
         # Move model to device
@@ -953,7 +955,7 @@ class M2M_Translator:
     def preprocess_function(self, examples: Dict) -> Dict:
         try:
             # Set source language for tokenization
-            self.tokenizer.src_lang = self.src_lang
+            # self.tokenizer.src_lang = self.src_lang
             
             inputs = examples[self.src_col]
             targets = examples[self.tgt_col]

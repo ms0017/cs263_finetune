@@ -11,7 +11,8 @@ warnings.filterwarnings('ignore')
 gc.collect()
 torch.cuda.empty_cache()
 
-
+# https://aclanthology.org/2022.wmt-1.33.pdf
+# https://github.com/TartuNLP/m2m-100-finetune
 if __name__ == "__main__":
     try:
         src_col = "TWI"
@@ -26,13 +27,13 @@ if __name__ == "__main__":
         translator = M2M_Translator(
             model_name="facebook/m2m100_1.2B",
             max_length=128,
-            batch_size=32,
+            batch_size=16,
             num_epochs=3,
             learning_rate=1e-5,
             weight_decay=0.01,
             output_dir=f"./{output_dir_name}",
-            src_lang="twi", 
-            tgt_lang="eng", 
+            src_lang="fr", 
+            tgt_lang="en", 
             src_col=src_col,
             tgt_col=tgt_col,
             device=None,
@@ -52,7 +53,7 @@ if __name__ == "__main__":
             src_col=src_col,
             tgt_col=tgt_col,
             logger=logger,
-            subset=500
+            subset=1000
         )
         
         # Save training completion status
