@@ -1277,26 +1277,8 @@ class Llama_Translator:
             raise
 
     def translate(self, sentence, max_length=128):
-        """
-        Translate an English sentence to TWI using the fine-tuned model.
-
-        Args:
-            sentence (str): The English sentence to translate.
-            model: The fine-tuned Llama model.
-            tokenizer: The tokenizer used for the fine-tuned model.
-            max_length (int): Maximum length of the generated translation.
-
-        Returns:
-            str: The TWI translation.
-        """
-        # Format the input as per instruction tuning
         prompt = f"<s>Instruction: Translate the following {self.src_lang} sentence to {self.tgt_lang}.\nSentence: {sentence}</s>"
-        
-
-        # Tokenize the input
         inputs = self.tokenizer(prompt, return_tensors="pt").to("cuda" if torch.cuda.is_available() else "cpu")
-
-        # Generate the translation
         outputs = self.model.generate(
             inputs["input_ids"],
             max_length=max_length,
@@ -1304,7 +1286,5 @@ class Llama_Translator:
             early_stopping=True,
             no_repeat_ngram_size=2,  
         )
-
-        # Decode the output tokens to text
         translation = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
         return translation
