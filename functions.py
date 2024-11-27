@@ -32,7 +32,8 @@ from transformers import (
     M2M100Tokenizer,
     AutoModelForCausalLM,
     TrainingArguments,
-    Trainer
+    Trainer,
+    pipeline
 )
 import evaluate
 
@@ -1108,7 +1109,7 @@ class M2M_Translator:
 class Llama_Translator:
     def __init__(
         self,
-        model_name: str = "meta-llama/Llama-3.2-1B-Instruct",
+        model_name: str = "meta-llama/Llama-3.2-3B",
         max_length: int = 128,
         batch_size: int = 8,
         num_epochs: int = 3,
@@ -1171,44 +1172,36 @@ class Llama_Translator:
         self.logger.info(f"Total parameters: {total_params:,}")
         self.logger.info(f"Trainable parameters: {trainable_params:,}")
         self.logger.info("=" * 50)
+    
+    def preprocess_function(self,examples):
+        inputs = [f"<s>Instruction: Translate the following {self.src_lang} sentence to {self.tgt_lang}.\nSentence: {sentence}</s>" for sentence in examples[self.src_lang]]
+        targets = [f"<s>{translation}</s>" for translation in examples["TWI"]]
 
-    def preprocess_function(self, examples: Dict) -> Dict:
-        try:
-            # Set source language for tokenization
-            # self.tokenizer.src_lang = self.src_lang
-            
-            inputs = examples[self.src_col]
-            targets = examples[self.tgt_col]
-            
-            # Tokenize inputs
-            model_inputs = self.tokenizer(
-                inputs,
-                max_length=self.max_length,
+        # Tokenize the input text (instruction + English sentence)
+        model_inputs = self.tokenizer(
+            inputs,
+            max_length=512,
+            padding="max_length",
+            truncation=True,
+        )
+
+        # Tokenize the target text (TWI translation)
+        with self.tokenizer.as_target_tokenizer():
+            labels = self.tokenizer(
+                targets,
+                max_length=512,
                 padding="max_length",
                 truncation=True,
-                return_tensors="pt"
             )
-            
-            # Tokenize targets
-            with self.tokenizer.as_target_tokenizer():
-                labels = self.tokenizer(
-                    targets,
-                    max_length=self.max_length,
-                    padding="max_length",
-                    truncation=True,
-                    return_tensors="pt"
-                )
-            
-            model_inputs["labels"] = labels["input_ids"]
-            
-            # Move tensors to device
-            model_inputs = {k: v.to(self.device) for k, v in model_inputs.items()}
-            
-            return model_inputs
-            
-        except Exception as e:
-            self.logger.error(f"Error in preprocessing: {str(e)}")
-            raise
+
+        # Assign labels and mask padding tokens with -100
+        model_inputs["labels"] = [
+            [-100 if token == self.tokenizer.pad_token_id else token for token in label]
+            for label in labels["input_ids"]
+        ]
+
+        return model_inputs
+
 
     def compute_metrics(self, eval_preds) -> Dict:
         try:
@@ -1232,6 +1225,7 @@ class Llama_Translator:
             return {"bleu": 0.0}
 
     def train(self, dataset):
+        self.tokenizer.pad_token = self.tokenizer.eos_token
         try:
             # Process datasets
             processed_datasets = dataset.map(
@@ -1242,27 +1236,20 @@ class Llama_Translator:
             
             # Set up training arguments with gradient accumulation
 
-
             training_args = TrainingArguments(
-                output_dir=self.output_dir,
-                overwrite_output_dir=True,
-                evaluation_strategy="epoch",
-                learning_rate=self.learning_rate,
-                per_device_train_batch_size=self.batch_size,
-                per_device_eval_batch_size=self.batch_size,
-                gradient_accumulation_steps=4, 
-                weight_decay=self.weight_decay,
-                num_train_epochs=self.num_epochs,
-                predict_with_generate=True,
-                fp16=True,
-                fp16_opt_level="O1",
-                save_strategy="epoch",
-                load_best_model_at_end=True,
-                metric_for_best_model="eval_bleu",
-                greater_is_better=True,
-                warmup_steps=100,
-                logging_steps=10
-            )
+                        output_dir=self.output_dir,
+                        evaluation_strategy="epoch",
+                        logging_dir="./logs",
+                        save_strategy="epoch",
+                        learning_rate=self.learning_rate,
+                        per_device_train_batch_size=2,
+                        per_device_eval_batch_size=2,
+                        num_train_epochs=3,
+                        warmup_steps=500,
+                        weight_decay=0.01,
+                        fp16=True,  # Mixed precision training for efficiency
+                        save_total_limit=2,
+                    )
             
             # Initialize trainer
             trainer = Trainer(
@@ -1273,7 +1260,7 @@ class Llama_Translator:
                 tokenizer=self.tokenizer,
                 compute_metrics=self.compute_metrics
             )
-            
+
             # Train the model
             self.logger.info("Starting training...")
             trainer.train()
@@ -1289,31 +1276,35 @@ class Llama_Translator:
             self.logger.error(f"Error during training: {str(e)}")
             raise
 
-    def translate(self, text: str) -> str:
-        try:
-            # Prepare input
-            self.tokenizer.src_lang = self.src_lang
-            inputs = self.tokenizer(
-                text, 
-                return_tensors="pt",
-                padding=True,
-                truncation=True,
-                max_length=self.max_length
-            ).to(self.device)
-            
-            # Generate translation
-            generated_tokens = self.model.generate(
-                **inputs,
-                forced_bos_token_id=self.tokenizer.get_lang_id(self.tgt_lang),
-                max_length=self.max_length,
-                num_beams=5,
-                length_penalty=1.0,
-                early_stopping=True
-            )
-            
-            # Decode and return translation
-            return self.tokenizer.batch_decode(generated_tokens, skip_special_tokens=True)[0]
-            
-        except Exception as e:
-            self.logger.error(f"Error during translation: {str(e)}")
-            raise
+    def translate(self, sentence, max_length=128):
+        """
+        Translate an English sentence to TWI using the fine-tuned model.
+
+        Args:
+            sentence (str): The English sentence to translate.
+            model: The fine-tuned Llama model.
+            tokenizer: The tokenizer used for the fine-tuned model.
+            max_length (int): Maximum length of the generated translation.
+
+        Returns:
+            str: The TWI translation.
+        """
+        # Format the input as per instruction tuning
+        prompt = f"<s>Instruction: Translate the following {self.src_lang} sentence to {self.tgt_lang}.\nSentence: {sentence}</s>"
+        
+
+        # Tokenize the input
+        inputs = self.tokenizer(prompt, return_tensors="pt").to("cuda" if torch.cuda.is_available() else "cpu")
+
+        # Generate the translation
+        outputs = self.model.generate(
+            inputs["input_ids"],
+            max_length=max_length,
+            num_beams=5,
+            early_stopping=True,
+            no_repeat_ngram_size=2,  
+        )
+
+        # Decode the output tokens to text
+        translation = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
+        return translation

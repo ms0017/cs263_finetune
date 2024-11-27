@@ -8,6 +8,23 @@ from functions import initialize_logs, import_data, evaluate_model, Llama_Transl
 warnings.filterwarnings('ignore')
 gc.collect()
 torch.cuda.empty_cache()
+def prepare_prompt(source,target):
+    full_prompt =f"""You are a Langueage translation model. 
+    Your job is to translate from one language to the other. 
+    You are given a question and context regarding the problem.
+
+You must answer the question.
+
+### Input:
+{data_point["question"]}
+
+### Context:
+{data_point["context"]}
+
+### Response:
+{data_point["answer"]}
+"""
+    return tokenize(full_prompt)
 
 if __name__ == "__main__":
     try:
