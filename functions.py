@@ -1109,7 +1109,7 @@ class M2M_Translator:
 class Llama_Translator:
     def __init__(
         self,
-        model_name: str = "meta-llama/Llama-3.2-3B",
+        model_name: str = "meta-llama/Llama-3.2-1B",
         max_length: int = 128,
         batch_size: int = 8,
         num_epochs: int = 3,
@@ -1142,7 +1142,7 @@ class Llama_Translator:
         # Initialize tokenizer and model
 
 
-        self.tokenizer = AutoTokenizer.from_pretrained(model_name, src_lang=self.src_lang, tgt_lang=self.tgt_lang)
+        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
         self.model = AutoModelForCausalLM.from_pretrained(model_name)
         
         # Move model to device
@@ -1175,7 +1175,7 @@ class Llama_Translator:
     
     def preprocess_function(self,examples):
         inputs = [f"<s>Instruction: Translate the following {self.src_lang} sentence to {self.tgt_lang}.\nSentence: {sentence}</s>" for sentence in examples[self.src_lang]]
-        targets = [f"<s>{translation}</s>" for translation in examples["TWI"]]
+        targets = [f"<s>{translation}</s>" for translation in examples[self.tgt_lang]]
 
         # Tokenize the input text (instruction + English sentence)
         model_inputs = self.tokenizer(
