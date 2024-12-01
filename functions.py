@@ -1456,6 +1456,7 @@ class OPT_Translator:
                 greater_is_better=True,
                 warmup_steps=100,
                 logging_steps=10,
+                predict_with_generate=True, 
                 fp16=True
             )
             
@@ -1505,7 +1506,6 @@ class OPT_Translator:
             # Generate translation
             generated_tokens = self.model.generate(
                 **inputs,
-                forced_bos_token_id=self.tokenizer.get_lang_id(self.tgt_lang),
                 max_length=self.max_length,
                 num_beams=5,
                 length_penalty=1.0,
@@ -1721,7 +1721,6 @@ class Mistral_Translator:
             # Generate translation
             generated_tokens = self.model.generate(
                 **inputs,
-                forced_bos_token_id=self.tokenizer.get_lang_id(self.tgt_lang),
                 max_length=self.max_length,
                 num_beams=5,
                 length_penalty=1.0,
