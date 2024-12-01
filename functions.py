@@ -2150,7 +2150,7 @@ class XGLM_Translator:
             generated_tokens = self.model.generate(
                 **inputs,
                 forced_bos_token_id=self.tokenizer.get_lang_id(self.tgt_lang),
-                max_length=self.max_length,
+                max_length=128,
                 num_beams=5,
                 length_penalty=1.0,
                 early_stopping=True
