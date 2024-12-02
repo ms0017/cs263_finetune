@@ -1194,33 +1194,25 @@ class Llama_Translator:
             raise
 
     def translate(self, sentence, max_length=128):
-        try:
-            # Prepare input
-            self.tokenizer.src_lang = self.src_lang
-            inputs = self.tokenizer(
-                text, 
-                return_tensors="pt",
-                padding=True,
-                truncation=True,
-                max_length=self.max_length
-            ).to(self.device)
-            
-            # Generate translation
-            generated_tokens = self.model.generate(
-                **inputs,
-                forced_bos_token_id=self.tokenizer.get_lang_id(self.tgt_lang),
-                max_length=self.max_length,
-                num_beams=5,
-                length_penalty=1.0,
-                early_stopping=True
-            )
-            
-            # Decode and return translation
-            return self.tokenizer.batch_decode(generated_tokens, skip_special_tokens=True)[0]
-            
-        except Exception as e:
-            self.logger.error(f"Error during translation: {str(e)}")
-            raise
+        prompt = f"<s>Instruction: Translate the following {self.src_lang} sentence to {self.tgt_lang}.\nSentence: {sentence}</s>"
+
+        inputs = self.tokenizer(prompt, return_tensors="pt").to("cuda" if torch.cuda.is_available() else "cpu")
+
+        outputs = self.model.generate(
+            inputs["input_ids"],
+            max_length=max_length,
+            num_beams=5,  # Use beam search for better translations
+            early_stopping=True,
+            no_repeat_ngram_size=2,  # Avoid repeating phrases
+        )
+
+        # Decode the output tokens to text
+        raw_translation = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
+
+        # Remove instructions from the output to clean the translation
+        cleaned_translation = raw_translation.split("Sentence:")[-1].strip()
+
+        return cleaned_translation
 
 class OPT_Translator:
     def __init__(
@@ -2254,31 +2246,23 @@ class Falcon_Translator:
             self.logger.error(f"Error during training: {str(e)}")
             raise
 
-    def translate(self, text: str) -> str:
-        try:
-            # Prepare input
-            self.tokenizer.src_lang = self.src_lang
-            inputs = self.tokenizer(
-                text, 
-                return_tensors="pt",
-                padding=True,
-                truncation=True,
-                max_length=self.max_length
-            ).to(self.device)
-            
-            # Generate translation
-            generated_tokens = self.model.generate(
-                **inputs,
-                forced_bos_token_id=self.tokenizer.get_lang_id(self.tgt_lang),
-                max_length=self.max_length,
-                num_beams=5,
-                length_penalty=1.0,
-                early_stopping=True
-            )
-            
-            # Decode and return translation
-            return self.tokenizer.batch_decode(generated_tokens, skip_special_tokens=True)[0]
-            
-        except Exception as e:
-            self.logger.error(f"Error during translation: {str(e)}")
-            raise
+    def translate(self, sentence, max_length=128):
+        prompt = f"<s>Instruction: Translate the following {self.src_lang} sentence to {self.tgt_lang}.\nSentence: {sentence}</s>"
+
+        inputs = self.tokenizer(prompt, return_tensors="pt").to("cuda" if torch.cuda.is_available() else "cpu")
+
+        outputs = self.model.generate(
+            inputs["input_ids"],
+            max_length=max_length,
+            num_beams=5,  # Use beam search for better translations
+            early_stopping=True,
+            no_repeat_ngram_size=2,  # Avoid repeating phrases
+        )
+
+        # Decode the output tokens to text
+        raw_translation = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
+
+        # Remove instructions from the output to clean the translation
+        cleaned_translation = raw_translation.split("Sentence:")[-1].strip()
+
+        return cleaned_translation
