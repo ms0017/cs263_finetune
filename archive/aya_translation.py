@@ -23,8 +23,8 @@ if __name__ == "__main__":
         translator = Aya_Translator(
             model_name="CohereForAI/aya-23-8B",
             max_length=128,
-            batch_size=8,
-            num_epochs=3,
+            batch_size=4,
+            num_epochs=1,
             learning_rate=1e-5,
             weight_decay=0.01,
             output_dir=f"./{output_dir_name}",

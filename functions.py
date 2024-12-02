@@ -585,90 +585,6 @@ class mT5_Translator:
 
         return translations[0]
 
-    # def evaluate_model(translator, dataset, src_col, tgt_col, logger, subset):
-    #     try:
-    #         test_sample = dataset['test'].shuffle(seed=42).select(range(subset))
-    #         results = []
-            
-    #         logger.info("Generating translations for test sample...")
-    #         for instance in tqdm(test_sample):
-    #             src_text = instance[src_col]
-    #             reference_english = instance[tgt_col]
-                
-    #             # Generate translation
-    #             translated = translator.translate(src_text)
-                
-    #             # Calculate BLEU score for this translation
-    #             try:
-    #                 bleu_result = translator.metric.compute(
-    #                     predictions=[translated],
-    #                     references=[[reference_english]]
-    #                 )
-    #             except ZeroDivisionError as e:
-    #                 logging.warning(f"ZeroDivisionError in BLEU calculation: {e}")
-    #                 logging.warning(f"{reference_english} -> {translated}")
-                    
-    #             # Extract BLEU score
-    #             bleu_score = bleu_result['bleu'] if 'bleu' in bleu_result else 0.0
-                
-    #             # Store results
-    #             results.append({
-    #                 'source': src_text,
-    #                 'reference': reference_english,
-    #                 'translation': translated,
-    #                 'bleu_score': bleu_score
-    #             })
-            
-    #         # Calculate aggregate metrics
-    #         bleu_scores = [r['bleu_score'] for r in results]
-    #         aggregate_metrics = {
-    #             'metric': ['average_bleu', 'max_bleu', 'min_bleu', 'num_samples'],
-    #             'value': [
-    #                 sum(bleu_scores) / len(bleu_scores) if bleu_scores else 0.0,
-    #                 max(bleu_scores) if bleu_scores else 0.0,
-    #                 min(bleu_scores) if bleu_scores else 0.0,
-    #                 len(results)
-    #             ]
-    #         }
-            
-    #         # Save results and metrics
-    #         results_path = os.path.join(translator.output_dir, 'sample_translations.csv')
-    #         metrics_path = os.path.join(translator.output_dir, 'sample_metrics.csv')
-            
-    #         # Convert results to DataFrame and save as CSV
-    #         results_df = pd.DataFrame(results)
-    #         results_df.to_csv(results_path, index=False, encoding='utf-8')
-    #         logger.info(f"Translation results saved to {results_path}")
-            
-    #         # Convert metrics to DataFrame and save as CSV
-    #         metrics_df = pd.DataFrame(aggregate_metrics)
-    #         metrics_df.to_csv(metrics_path, index=False, encoding='utf-8')
-    #         logger.info(f"Metrics saved to {metrics_path}")
-            
-    #         # Log example translations
-    #         logger.info("\nExample Translations:")
-    #         logger.info("-" * 50)
-    #         for _, row in results_df.head().iterrows():
-    #             logger.info(f"Source: {row['source']}")
-    #             logger.info(f"Reference: {row['reference']}")
-    #             logger.info(f"Translation: {row['translation']}")
-    #             logger.info(f"BLEU Score: {row['bleu_score']:.2f}")
-    #             logger.info("-" * 50)
-            
-    #         # Log aggregate metrics
-    #         logger.info("\nAggregate Metrics:")
-    #         for _, row in metrics_df.iterrows():
-    #             metric_name = row['metric']
-    #             value = row['value']
-    #             if metric_name != 'num_samples':
-    #                 logger.info(f"{metric_name}: {value:.2f}")
-    #             else:
-    #                 logger.info(f"{metric_name}: {int(value)}")
-            
-    #     except Exception as e:
-    #         logger.error(f"Error during sample translation: {str(e)}", exc_info=True)
-    #         raise
-
 # https://cointegrated.medium.com/how-to-fine-tune-a-nllb-200-model-for-translating-a-new-language-a37fc706b865
 class NLLB_Translator:
     def __init__(
@@ -1519,7 +1435,6 @@ class OPT_Translator:
             self.logger.error(f"Error during translation: {str(e)}")
             raise
 
-
 class Mistral_Translator:
     def __init__(
         self,
@@ -1948,7 +1863,6 @@ class Aya_Translator:
             self.logger.error(f"Error during translation: {str(e)}")
             raise
         
-
 class XGLM_Translator:
     def __init__(
         self,
@@ -2162,7 +2076,6 @@ class XGLM_Translator:
         except Exception as e:
             self.logger.error(f"Error during translation: {str(e)}")
             raise
-
 
 class Falcon_Translator:
     def __init__(
