@@ -1193,7 +1193,7 @@ class Llama_Translator:
             raise
 
     def translate(self, sentence, max_length=128):
-        prompt = f"<s>Instruction: Translate the following {self.src_lang} sentence to {self.tgt_lang}.\nSentence: {sentence}</s>"
+        prompt = f"<s>Instruction: Translate the following {self.src_lang} sentence to {self.tgt_lang}.\nSentence: {sentence}.\nTranslation:"
 
         inputs = self.tokenizer(prompt, return_tensors="pt").to("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -1209,7 +1209,7 @@ class Llama_Translator:
         raw_translation = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
 
         # Remove instructions from the output to clean the translation
-        cleaned_translation = raw_translation.split("Sentence:")[-1].strip()
+        cleaned_translation = raw_translation.split("Translation:")[-1].strip()
 
         return cleaned_translation
 
