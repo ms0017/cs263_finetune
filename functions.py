@@ -730,7 +730,6 @@ class NLLB_Translator:
                 per_device_eval_batch_size=max(1, self.batch_size // 4),
                 weight_decay=self.weight_decay,
                 num_train_epochs=self.num_epochs,
-                predict_with_generate=True,
                 logging_dir=f"{self.output_dir}/logs",
                 save_strategy="epoch",
                 load_best_model_at_end=True,
