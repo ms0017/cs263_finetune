@@ -9,8 +9,10 @@ SHARED_PARAMS = {
     "max_length": 128,
     "learning_rate": 1e-5,
     "weight_decay": 0.01,
-    "batch_size": 16,
-    "num_epochs": 1
+    "batch_size": 8,
+    "num_epochs": 1,
+    "src_lang": "TWI",
+    "tgt_lang": "ENGLISH",
 }
 
 MODEL_CONFIGS = {
@@ -18,25 +20,13 @@ MODEL_CONFIGS = {
         "class": Aya_Translator,
         "params": {
             "model_name": "CohereForAI/aya-23-8B",
-            "src_lang": "twi",
-            "tgt_lang": "en"
-        }
-    },
-    "falcon": {
-        "class": Falcon_Translator,
-        "params": {
-            "model_name": "tiiuae/falcon-7b",
-            "src_lang": "TWI",
-            "tgt_lang": "ENGLISH",
-            "requires_login": True
+            "batch_size": 1
         }
     },
     "llama": {
         "class": Llama_Translator,
         "params": {
             "model_name": "meta-llama/Llama-3.2-1B",
-            "src_lang": "TWI",
-            "tgt_lang": "ENGLISH",
             "requires_login": True
         }
     },
@@ -60,7 +50,7 @@ MODEL_CONFIGS = {
         "class": Mistral_Translator,
         "params": {
             "model_name": "mistralai/Mistral-7B-Instruct-v0.1",
-            "batch_size": 3
+            "batch_size": 1
         }
     },
     "mt5": {
@@ -88,6 +78,13 @@ MODEL_CONFIGS = {
         "class": XGLM_Translator,
         "params": {
             "model_name": "facebook/xglm-564M",
+        }
+    },
+    "falcon": {
+        "class": Falcon_Translator,
+        "params": {
+            "model_name": "tiiuae/falcon-7b",
+            "requires_login": True
         }
     }
 }

@@ -924,7 +924,9 @@ class M2M_Translator:
                 predictions=decoded_preds,
                 references=[[label] for label in decoded_labels]
             )
-            
+            print("-------------------m2m result start-------------------")
+            print(result)
+            print("-------------------result end-------------------")
             return {"bleu": result["score"]}
             
         except Exception as e:
@@ -1675,25 +1677,30 @@ class Aya_Translator:
         self.tgt_col = tgt_col
         self.logger = logger
         
-        # Set device
+        # Set device and check for multiple GPUs
         self.device = device if device else ('cuda' if torch.cuda.is_available() else 'cpu')
+        self.multi_gpu = torch.cuda.device_count() > 1
         
         # Initialize tokenizer and model
-
         login(token="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")
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
         self.tokenizer.pad_token = self.tokenizer.eos_token  # Use EOS token as PAD token
         self.tokenizer.padding_side = "left"  # Important for XGLM
         self.model = AutoModelForCausalLM.from_pretrained(model_name)
+
+        # Log initialization
+        self._log_init_params()
         
-        # Move model to device
+        # Move model to device and wrap with DataParallel if multiple GPUs are available
+        self.logger.info("Moving model to device...")
         self.model = self.model.to(self.device)
+        if self.multi_gpu:
+            self.logger.info(f"Using DataParallel across {torch.cuda.device_count()} GPUs")
+            self.model = torch.nn.DataParallel(self.model)
+        self.logger.info("Model successfully moved to device.")
         
         # Setup metrics
         self.metric = evaluate.load("bleu")
-        
-        # Log initialization
-        self._log_init_params()
 
     def _log_init_params(self):
         self.logger.info("=== Aya Translator Configuration ===")
@@ -1706,6 +1713,7 @@ class Aya_Translator:
         self.logger.info(f"Source language: {self.src_lang}")
         self.logger.info(f"Target language: {self.tgt_lang}")
         self.logger.info(f"Device: {self.device}")
+        self.logger.info(f"Number of GPUs: {torch.cuda.device_count()}")
         
         # Log model size
         total_params = sum(p.numel() for p in self.model.parameters())
@@ -1742,7 +1750,6 @@ class Aya_Translator:
         ]
 
         return model_inputs
-
 
     def compute_metrics(self, eval_preds) -> Dict:
         try:
@@ -1786,23 +1793,22 @@ class Aya_Translator:
                 batched=True,
                 remove_columns=dataset["train"].column_names
             )
-            
-            # Set up training arguments with gradient accumulation
-
+               
+            # Set up training arguments with adjusted batch size
             training_args = TrainingArguments(
-                        output_dir=self.output_dir,
-                        evaluation_strategy="epoch",
-                        logging_dir="./logs",
-                        save_strategy="epoch",
-                        learning_rate=self.learning_rate,
-                        per_device_train_batch_size=2,
-                        per_device_eval_batch_size=2,
-                        num_train_epochs=3,
-                        warmup_steps=500,
-                        weight_decay=0.01,
-                        fp16=True,  # Mixed precision training for efficiency
-                        save_total_limit=2,
-                    )
+                output_dir=self.output_dir,
+                evaluation_strategy="epoch",
+                logging_dir="./logs",
+                save_strategy="epoch",
+                learning_rate=self.learning_rate,
+                per_device_train_batch_size=self.batch_size,
+                per_device_eval_batch_size=self.batch_size,
+                num_train_epochs=3,
+                warmup_steps=500,
+                weight_decay=0.01,
+                fp16=True, 
+                save_total_limit=2,
+            )
             
             # Initialize trainer
             trainer = Trainer(
@@ -1818,8 +1824,9 @@ class Aya_Translator:
             self.logger.info("Starting training...")
             trainer.train()
             
-            # Save the model
-            trainer.save_model(self.output_dir)
+            # Save the model (handle DataParallel wrapper)
+            model_to_save = self.model.module if self.multi_gpu else self.model
+            model_to_save.save_pretrained(self.output_dir)
             self.tokenizer.save_pretrained(self.output_dir)
             self.logger.info(f"Model saved to {self.output_dir}")
             
@@ -1830,13 +1837,17 @@ class Aya_Translator:
             raise
 
     def translate(self, sentence, max_length=128):
+        # Get the actual model (handle DataParallel wrapper)
+        model = self.model.module if self.multi_gpu else self.model
+        
         prompt = f"<s>Translate the following {self.src_lang} sentence to {self.tgt_lang}.\nSentence: {sentence}.\nTranslation:"
         print("sentence : ", sentence)
+        
         # Tokenize the prompt
         inputs = self.tokenizer(prompt, return_tensors="pt").to(self.device)
 
         # Generate the translation
-        outputs = self.model.generate(
+        outputs = model.generate(
             inputs["input_ids"],
             max_length=max_length,
             num_beams=5,              
@@ -1851,10 +1862,8 @@ class Aya_Translator:
         print("raw translation : ", raw_translation)
 
         cleaned_translation = raw_translation.split("Translation:")[-1].strip()
+        return cleaned_translation 
 
-        return cleaned_translation
-
-        
 class XGLM_Translator:
     def __init__(
         self,

@@ -94,3 +94,5 @@ if __name__ == "__main__":
         except Exception as e:
             logger.error(f"Error in {model_name} initialization: {str(e)}", exc_info=True)
             continue
+
+# torchrun --nproc_per_node=4 unified_model_trainer.py
