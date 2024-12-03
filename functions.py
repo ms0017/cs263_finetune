@@ -2128,65 +2128,70 @@ class Falcon_Translator:
         self.logger.info(f"Trainable parameters: {trainable_params:,}")
         self.logger.info("=" * 50)
 
-    def preprocess_function(self, examples: Dict) -> Dict:
-        try:
-            # Set source language for tokenization
-            # self.tokenizer.src_lang = self.src_lang
-            inputs = [f"You are an accurate, honest, and useful multilingual language model. Your job is to translate text in {self.src_lang} to {self.tgt_lang}. Translate {text}." for text in examples[self.src_col]]
-            targets = [f"<s>{text}</s>" for text in examples[self.src_col]]
-            
-            # Tokenize inputs
-            model_inputs = self.tokenizer(
-                inputs,
-                max_length=self.max_length,
+    def preprocess_function(self,examples):
+        inputs = [f"<s>You are an accurate, precise, and honest multilingul large language model that translates {self.src_lang}. Translate the following {self.src_lang} sentence to {self.tgt_lang}.\nSentence : {sentence}</s>" for sentence in examples[self.src_lang]]
+        targets = [f"<s>{translation}</s>" for translation in examples[self.tgt_lang]]
+
+        # Tokenize the input text (instruction + English sentence)
+        model_inputs = self.tokenizer(
+            inputs,
+            max_length=512,
+            padding="max_length",
+            truncation=True,
+        )
+
+        # Tokenize the target text (TWI translation)
+        with self.tokenizer.as_target_tokenizer():
+            labels = self.tokenizer(
+                targets,
+                max_length=512,
                 padding="max_length",
                 truncation=True,
-                return_tensors="pt"
             )
-            
-            # Tokenize targets
-            with self.tokenizer.as_target_tokenizer():
-                labels = self.tokenizer(
-                    targets,
-                    max_length=self.max_length,
-                    padding="max_length",
-                    truncation=True,
-                    return_tensors="pt"
-                )
-            
-            model_inputs["labels"] = labels["input_ids"]
-            
-            # Move tensors to device
-            model_inputs = {k: v.to(self.device) for k, v in model_inputs.items()}
-            
-            return model_inputs
-            
-        except Exception as e:
-            self.logger.error(f"Error in preprocessing: {str(e)}")
-            raise
+
+        # Assign labels and mask padding tokens with -100
+        model_inputs["labels"] = [
+            [-100 if token == self.tokenizer.pad_token_id else token for token in label]
+            for label in labels["input_ids"]
+        ]
+
+        return model_inputs
 
     def compute_metrics(self, eval_preds) -> Dict:
         try:
-            preds, labels = eval_preds
-            
-            # Decode predictions
-            labels = np.where(labels != -100, labels, self.tokenizer.pad_token_id)
-            decoded_preds = self.tokenizer.batch_decode(preds, skip_special_tokens=True)
+            predictions = eval_preds.predictions
+            labels = eval_preds.label_ids
+            if len(predictions.shape) == 3:  # Shape: (batch_size, sequence_length, vocab_size)
+                predictions = predictions.argmax(axis=-1)  # Take the token with the highest probability
+
+            decoded_preds = self.tokenizer.batch_decode(predictions, skip_special_tokens=True)
+
+            labels = [
+                [(token if token != -100 else self.tokenizer.pad_token_id) for token in label]
+                for label in labels
+            ]
             decoded_labels = self.tokenizer.batch_decode(labels, skip_special_tokens=True)
-            
-            # Compute BLEU score
-            result = self.metric.compute(
-                predictions=decoded_preds,
-                references=[[label] for label in decoded_labels]
-            )
-            
-            return {"bleu": result["score"]}
-            
+
+            decoded_preds = [pred.strip() for pred in decoded_preds]
+            decoded_labels = [label.strip() for label in decoded_labels]
+
+            references = [[label] for label in decoded_labels]
+
+            bleu_metric = evaluate.load("bleu")
+            result = bleu_metric.compute(predictions=decoded_preds, references=references)
+
+            bleu_score = result["bleu"]
+
+            self.logger.info(f"BLEU score: {bleu_score:.4f}")
+
+            return {"bleu": bleu_score}
+
         except Exception as e:
             self.logger.error(f"Error computing metrics: {str(e)}")
             return {"bleu": 0.0}
 
     def train(self, dataset):
+        self.tokenizer.pad_token = self.tokenizer.eos_token
         try:
             # Process datasets
             processed_datasets = dataset.map(
