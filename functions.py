@@ -1121,21 +1121,33 @@ class Llama_Translator:
 
     def compute_metrics(self, eval_preds) -> Dict:
         try:
-            preds, labels = eval_preds
-            
-            # Decode predictions
-            labels = np.where(labels != -100, labels, self.tokenizer.pad_token_id)
-            decoded_preds = self.tokenizer.batch_decode(preds, skip_special_tokens=True)
+            predictions = eval_preds.predictions
+            labels = eval_preds.label_ids
+            if len(predictions.shape) == 3:  # Shape: (batch_size, sequence_length, vocab_size)
+                predictions = predictions.argmax(axis=-1)  # Take the token with the highest probability
+
+            decoded_preds = self.tokenizer.batch_decode(predictions, skip_special_tokens=True)
+
+            labels = [
+                [(token if token != -100 else self.tokenizer.pad_token_id) for token in label]
+                for label in labels
+            ]
             decoded_labels = self.tokenizer.batch_decode(labels, skip_special_tokens=True)
-            
-            # Compute BLEU score
-            result = self.metric.compute(
-                predictions=decoded_preds,
-                references=[[label] for label in decoded_labels]
-            )
-            
-            return {"bleu": result["score"]}
-            
+
+            decoded_preds = [pred.strip() for pred in decoded_preds]
+            decoded_labels = [label.strip() for label in decoded_labels]
+
+            references = [[label] for label in decoded_labels]
+
+            bleu_metric = evaluate.load("bleu")
+            result = bleu_metric.compute(predictions=decoded_preds, references=references)
+
+            bleu_score = result["bleu"]
+
+            self.logger.info(f"BLEU score: {bleu_score:.4f}")
+
+            return {"bleu": bleu_score}
+
         except Exception as e:
             self.logger.error(f"Error computing metrics: {str(e)}")
             return {"bleu": 0.0}
@@ -1193,22 +1205,25 @@ class Llama_Translator:
             raise
 
     def translate(self, sentence, max_length=128):
-        prompt = f"<s>Instruction: Translate the following {self.src_lang} sentence to {self.tgt_lang}.\nSentence: {sentence}.\nTranslation:"
+        prompt = f"<s>Instruction: Translate the following {self.src_lang} sentence to {self.tgt_lang} with only translated sentence without the explanation.\nSentence: {sentence}.\nTranslation:"
 
-        inputs = self.tokenizer(prompt, return_tensors="pt").to("cuda" if torch.cuda.is_available() else "cpu")
+        # Tokenize the prompt
+        inputs = self.tokenizer(prompt, return_tensors="pt").to(self.device)
 
+        # Generate the translation
         outputs = self.model.generate(
             inputs["input_ids"],
             max_length=max_length,
-            num_beams=5,  # Use beam search for better translations
-            early_stopping=True,
-            no_repeat_ngram_size=2,  # Avoid repeating phrases
+            num_beams=5,              
+            early_stopping=True,      
+            no_repeat_ngram_size=3,   
+            repetition_penalty=2.0,    
+            temperature=1.0,           
+            top_k=50,                 
+            top_p=0.95,                
         )
-
-        # Decode the output tokens to text
         raw_translation = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
 
-        # Remove instructions from the output to clean the translation
         cleaned_translation = raw_translation.split("Translation:")[-1].strip()
 
         return cleaned_translation
