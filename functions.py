@@ -107,6 +107,7 @@ def evaluate_model(translator, dataset, src_col, tgt_col, logger, subset):
                     references=[[reference_english]]
                 )
             except ZeroDivisionError as e:
+                bleu_result = {"bleu": 0.0}
                 logging.warning(f"ZeroDivisionError in BLEU calculation: {e}")
                 logging.warning(f"{reference_english} -> {translated}")
                 
@@ -285,7 +286,7 @@ class mBART_Translator:
                 references=[[label] for label in decoded_labels]
             )
 
-            return {"bleu": result["score"]}
+            return {"bleu": result["bleu"]}
         except Exception as e:
             self.logger.error(f"Error computing metrics: {str(e)}")
             return {"bleu": 0.0}
@@ -395,7 +396,9 @@ class mT5_Translator:
         device: str = None,
         logger = None,
         src_col: str = "TWI", 
-        tgt_col: str = "ENGLISH"
+        tgt_col: str = "ENGLISH",
+        src_lang: str = "twi",
+        tgt_lang: str = "en"
     ):
         self.model_name = model_name
         self.max_length = max_length
@@ -408,6 +411,8 @@ class mT5_Translator:
         self.logger = logger
         self.src_col=src_col 
         self.tgt_col=tgt_col
+        self.src_lang = src_lang
+        self.tgt_lang = tgt_lang
 
         # Initialize tokenizer and model
         self.tokenizer = MT5Tokenizer.from_pretrained(model_name)
@@ -480,7 +485,7 @@ class mT5_Translator:
                 references=[[label] for label in decoded_labels]
             )
 
-            return {"bleu": result["score"]}
+            return {"bleu": result["bleu"]}
         except Exception as e:
             self.logger.error(f"Error computing metrics: {str(e)}")
             return {"bleu": 0.0}
@@ -704,7 +709,7 @@ class NLLB_Translator:
                 references=[[label] for label in decoded_labels]
             )
             
-            return {"bleu": result["score"]}
+            return {"bleu": result["bleu"]}
             
         except Exception as e:
             self.logger.error(f"Error computing metrics: {str(e)}")
@@ -924,10 +929,7 @@ class M2M_Translator:
                 predictions=decoded_preds,
                 references=[[label] for label in decoded_labels]
             )
-            print("-------------------m2m result start-------------------")
-            print(result)
-            print("-------------------result end-------------------")
-            return {"bleu": result["score"]}
+            return {"bleu": result["bleu"]}
             
         except Exception as e:
             self.logger.error(f"Error computing metrics: {str(e)}")
@@ -2220,7 +2222,7 @@ class Falcon_Translator:
                                 gradient_accumulation_steps=4,
                                 weight_decay=self.weight_decay,
                                 num_train_epochs=self.num_epochs,
-                                predict_with_generate=True,
+                                # predict_with_generate=True,
                                 fp16=True,
                                 save_strategy="epoch",
                                 load_best_model_at_end=True,
