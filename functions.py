@@ -1231,15 +1231,15 @@ class Llama_Translator:
 class OPT_Translator:
     def __init__(
         self,
-        model_name: str = "facebook/opt-1.3b",
+        model_name: str ="facebook/opt-350m",
         max_length: int = 128,
         batch_size: int = 8,
         num_epochs: int = 3,
         learning_rate: float = 2e-5,
         weight_decay: float = 0.01,
         output_dir: str = "./opt-translation",
-        src_lang: str = "twi",
-        tgt_lang: str = "eng",
+        src_lang: str = "TWI",
+        tgt_lang: str = "ENGLISH",
         src_col: str = "TWI",
         tgt_col: str = "ENGLISH",
         device: str = None,
@@ -1262,8 +1262,10 @@ class OPT_Translator:
         self.device = device if device else ('cuda' if torch.cuda.is_available() else 'cpu')
         
         # Initialize tokenizer and model
-        self.tokenizer = AutoTokenizer.from_pretrained(model_name, src_lang=self.src_lang, tgt_lang=self.tgt_lang)
-        self.model = OPTForCausalLM.from_pretrained(model_name)
+
+
+        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
+        self.model = AutoModelForCausalLM.from_pretrained(model_name)
         
         # Move model to device
         self.model = self.model.to(self.device)
@@ -1292,67 +1294,72 @@ class OPT_Translator:
         self.logger.info(f"Total parameters: {total_params:,}")
         self.logger.info(f"Trainable parameters: {trainable_params:,}")
         self.logger.info("=" * 50)
+    
+    def preprocess_function(self,examples):
+        inputs = [f"<s>You are an accurate, efficient, and honest multilingul LLM that specializes in translating from {self.src_lang}.  Instruction: Translate the following {self.src_lang} sentence to {self.tgt_lang}.\nSentence: {sentence}</s>" for sentence in examples[self.src_lang]]
+        targets = [f"<s>{translation}</s>" for translation in examples[self.tgt_lang]]
 
-    def preprocess_function(self, examples: Dict) -> Dict:
-        try:
-            # Set source language for tokenization
-            # self.tokenizer.src_lang = self.src_lang
-            inputs = [f"You are an accurate, honest, and useful multilingual language model. Your job is to translate text in {self.src_lang} to {self.tgt_lang}. Translate {text}." for text in examples[self.src_col]]
-            targets = [f"<s>{text}</s>" for text in examples[self.src_col]]
-        
-            # Tokenize inputs
-            model_inputs = self.tokenizer(
-                inputs,
-                max_length=self.max_length,
+        # Tokenize the input text (instruction + English sentence)
+        model_inputs = self.tokenizer(
+            inputs,
+            max_length=512,
+            padding="max_length",
+            truncation=True,
+        )
+
+        # Tokenize the target text (TWI translation)
+        with self.tokenizer.as_target_tokenizer():
+            labels = self.tokenizer(
+                targets,
+                max_length=512,
                 padding="max_length",
                 truncation=True,
-                return_tensors="pt"
             )
-            
-            # Tokenize targets
-            with self.tokenizer.as_target_tokenizer():
-                labels = self.tokenizer(
-                    targets,
-                    max_length=self.max_length,
-                    padding="max_length",
-                    truncation=True,
-                    return_tensors="pt"
-                )
-            
-            model_inputs["labels"] = labels["input_ids"]
-            
-            # Move tensors to device
-            model_inputs = {k: v.to(self.device) for k, v in model_inputs.items()}
-            
-            return model_inputs
-            
-        except Exception as e:
-            self.logger.error(f"Error in preprocessing: {str(e)}")
-            raise
+
+        # Assign labels and mask padding tokens with -100
+        model_inputs["labels"] = [
+            [-100 if token == self.tokenizer.pad_token_id else token for token in label]
+            for label in labels["input_ids"]
+        ]
+
+        return model_inputs
+
 
     def compute_metrics(self, eval_preds) -> Dict:
         try:
-            preds, labels = eval_preds
-            if preds.ndim > 2:
-                preds = preds[0]
-            # Decode predictions
-            labels = np.where(labels != -100, labels, self.tokenizer.pad_token_id)
-            decoded_preds = self.tokenizer.batch_decode(preds, skip_special_tokens=True, clean_up_tokenization_spaces=True)
-            decoded_labels = self.tokenizer.batch_decode(labels, skip_special_tokens=True, clean_up_tokenization_spaces=True)
-            
-            # Compute BLEU score
-            result = self.metric.compute(
-                predictions=decoded_preds,
-                references=[[label] for label in decoded_labels]
-            )
-            
-            return {"bleu": result["score"]}
-            
+            predictions = eval_preds.predictions
+            labels = eval_preds.label_ids
+            if len(predictions.shape) == 3:  # Shape: (batch_size, sequence_length, vocab_size)
+                predictions = predictions.argmax(axis=-1)  # Take the token with the highest probability
+
+            decoded_preds = self.tokenizer.batch_decode(predictions, skip_special_tokens=True)
+
+            labels = [
+                [(token if token != -100 else self.tokenizer.pad_token_id) for token in label]
+                for label in labels
+            ]
+            decoded_labels = self.tokenizer.batch_decode(labels, skip_special_tokens=True)
+
+            decoded_preds = [pred.strip() for pred in decoded_preds]
+            decoded_labels = [label.strip() for label in decoded_labels]
+
+            references = [[label] for label in decoded_labels]
+
+            bleu_metric = evaluate.load("bleu")
+            result = bleu_metric.compute(predictions=decoded_preds, references=references)
+
+            bleu_score = result["bleu"]
+
+            self.logger.info(f"BLEU score: {bleu_score:.4f}")
+
+            return {"bleu": bleu_score}
+
         except Exception as e:
             self.logger.error(f"Error computing metrics: {str(e)}")
             return {"bleu": 0.0}
 
     def train(self, dataset):
+        self.tokenizer.pad_token = self.tokenizer.eos_token
         try:
             # Process datasets
             processed_datasets = dataset.map(
@@ -1362,25 +1369,21 @@ class OPT_Translator:
             )
             
             # Set up training arguments with gradient accumulation
+
             training_args = TrainingArguments(
-                output_dir=self.output_dir,
-                overwrite_output_dir=True,
-                evaluation_strategy="epoch",
-                learning_rate=self.learning_rate,
-                per_device_train_batch_size=self.batch_size,
-                per_device_eval_batch_size=self.batch_size,
-                gradient_accumulation_steps=4, 
-                weight_decay=self.weight_decay,
-                num_train_epochs=self.num_epochs,
-                save_strategy="epoch",
-                load_best_model_at_end=True,
-                metric_for_best_model="eval_bleu",
-                greater_is_better=True,
-                warmup_steps=100,
-                logging_steps=10,
-                predict_with_generate=True, 
-                fp16=True
-            )
+                        output_dir=self.output_dir,
+                        evaluation_strategy="epoch",
+                        logging_dir="./logs",
+                        save_strategy="epoch",
+                        learning_rate=self.learning_rate,
+                        per_device_train_batch_size=2,
+                        per_device_eval_batch_size=2,
+                        num_train_epochs=3,
+                        warmup_steps=500,
+                        weight_decay=0.01,
+                        fp16=True,  # Mixed precision training for efficiency
+                        save_total_limit=2,
+                    )
             
             # Initialize trainer
             trainer = Trainer(
@@ -1389,15 +1392,9 @@ class OPT_Translator:
                 train_dataset=processed_datasets["train"],
                 eval_dataset=processed_datasets["test"],
                 tokenizer=self.tokenizer,
-                data_collator=DataCollatorForSeq2Seq(
-                    tokenizer=self.tokenizer,
-                    model=self.model,
-                    padding=True,
-                    return_tensors="pt"
-                ),
                 compute_metrics=self.compute_metrics
             )
-            
+
             # Train the model
             self.logger.info("Starting training...")
             trainer.train()
@@ -1413,46 +1410,43 @@ class OPT_Translator:
             self.logger.error(f"Error during training: {str(e)}")
             raise
 
-    def translate(self, text: str) -> str:
-        try:
-            # Prepare input
-            self.tokenizer.src_lang = self.src_lang
-            inputs = self.tokenizer(
-                text, 
-                return_tensors="pt",
-                padding=True,
-                truncation=True,
-                max_length=self.max_length
-            ).to(self.device)
-            
-            # Generate translation
-            generated_tokens = self.model.generate(
-                **inputs,
-                max_length=self.max_length,
-                num_beams=5,
-                length_penalty=1.0,
-                early_stopping=True
-            )
-            
-            # Decode and return translation
-            return self.tokenizer.batch_decode(generated_tokens, skip_special_tokens=True)[0]
-            
-        except Exception as e:
-            self.logger.error(f"Error during translation: {str(e)}")
-            raise
+    def translate(self, sentence, max_length=128):
+        prompt = f"<s>Instruction: Translate the following {self.src_lang} sentence to {self.tgt_lang}.\nSentence: {sentence}.\nTranslation:"
+        print("sentence : ", sentence)
+        # Tokenize the prompt
+        inputs = self.tokenizer(prompt, return_tensors="pt").to(self.device)
+
+        # Generate the translation
+        outputs = self.model.generate(
+            inputs["input_ids"],
+            max_length=max_length,
+            num_beams=5,              
+            early_stopping=True,      
+            no_repeat_ngram_size=3,   
+            repetition_penalty=2.0,    
+            temperature=1.0,           
+            top_k=50,                 
+            top_p=0.95,                
+        )
+        raw_translation = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
+        print("raw translation : ", raw_translation)
+
+        cleaned_translation = raw_translation.split("Translation:")[-1].strip()
+
+        return cleaned_translation
 
 class Mistral_Translator:
     def __init__(
         self,
-        model_name: str = "mistralai/Mistral-7B-Instruct-v0.1",
+        model_name: str ="mistralai/Mistral-7B-Instruct-v0.1",
         max_length: int = 128,
-        batch_size: int = 8,
-        num_epochs: int = 3,
+        batch_size: int = 3,
+        num_epochs: int = 1,
         learning_rate: float = 2e-5,
         weight_decay: float = 0.01,
         output_dir: str = "./mistral-translation",
-        src_lang: str = "twi",
-        tgt_lang: str = "eng",
+        src_lang: str = "TWI",
+        tgt_lang: str = "ENGLISH",
         src_col: str = "TWI",
         tgt_col: str = "ENGLISH",
         device: str = None,
@@ -1475,8 +1469,11 @@ class Mistral_Translator:
         self.device = device if device else ('cuda' if torch.cuda.is_available() else 'cpu')
         
         # Initialize tokenizer and model
+
         login(token="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")
-        self.tokenizer = AutoTokenizer.from_pretrained(model_name, src_lang=self.src_lang, tgt_lang=self.tgt_lang)
+        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
+        self.tokenizer.pad_token = self.tokenizer.eos_token  # Use EOS token as PAD token
+        self.tokenizer.padding_side = "left"  # Important for XGLM
         self.model = AutoModelForCausalLM.from_pretrained(model_name)
         
         # Move model to device
@@ -1506,67 +1503,72 @@ class Mistral_Translator:
         self.logger.info(f"Total parameters: {total_params:,}")
         self.logger.info(f"Trainable parameters: {trainable_params:,}")
         self.logger.info("=" * 50)
+    
+    def preprocess_function(self,examples):
+        inputs = [f"<s>You are an accurate, precise, and honest multilingul large language model that translates {self.src_lang}. Translate the following {self.src_lang} sentence to {self.tgt_lang}.\nSentence : {sentence}</s>" for sentence in examples[self.src_lang]]
+        targets = [f"<s>{translation}</s>" for translation in examples[self.tgt_lang]]
 
-    def preprocess_function(self, examples: Dict) -> Dict:
-        try:
-            # Set source language for tokenization
-            # self.tokenizer.src_lang = self.src_lang
-            inputs = [f"You are an accurate, honest, and useful multilingual language model. Your job is to translate text in {self.src_lang} to {self.tgt_lang}. Translate {text}." for text in examples[self.src_col]]
-            targets = [f"<s>{text}</s>" for text in examples[self.src_col]]
-            
-            
-            # Tokenize inputs
-            model_inputs = self.tokenizer(
-                inputs,
-                max_length=self.max_length,
+        # Tokenize the input text (instruction + English sentence)
+        model_inputs = self.tokenizer(
+            inputs,
+            max_length=512,
+            padding="max_length",
+            truncation=True,
+        )
+
+        # Tokenize the target text (TWI translation)
+        with self.tokenizer.as_target_tokenizer():
+            labels = self.tokenizer(
+                targets,
+                max_length=512,
                 padding="max_length",
                 truncation=True,
-                return_tensors="pt"
             )
-            
-            # Tokenize targets
-            with self.tokenizer.as_target_tokenizer():
-                labels = self.tokenizer(
-                    targets,
-                    max_length=self.max_length,
-                    padding="max_length",
-                    truncation=True,
-                    return_tensors="pt"
-                )
-            
-            model_inputs["labels"] = labels["input_ids"]
-            
-            # Move tensors to device
-            model_inputs = {k: v.to(self.device) for k, v in model_inputs.items()}
-            
-            return model_inputs
-            
-        except Exception as e:
-            self.logger.error(f"Error in preprocessing: {str(e)}")
-            raise
+
+        # Assign labels and mask padding tokens with -100
+        model_inputs["labels"] = [
+            [-100 if token == self.tokenizer.pad_token_id else token for token in label]
+            for label in labels["input_ids"]
+        ]
+
+        return model_inputs
+
 
     def compute_metrics(self, eval_preds) -> Dict:
         try:
-            preds, labels = eval_preds
-            
-            # Decode predictions
-            labels = np.where(labels != -100, labels, self.tokenizer.pad_token_id)
-            decoded_preds = self.tokenizer.batch_decode(preds, skip_special_tokens=True)
+            predictions = eval_preds.predictions
+            labels = eval_preds.label_ids
+            if len(predictions.shape) == 3:  # Shape: (batch_size, sequence_length, vocab_size)
+                predictions = predictions.argmax(axis=-1)  # Take the token with the highest probability
+
+            decoded_preds = self.tokenizer.batch_decode(predictions, skip_special_tokens=True)
+
+            labels = [
+                [(token if token != -100 else self.tokenizer.pad_token_id) for token in label]
+                for label in labels
+            ]
             decoded_labels = self.tokenizer.batch_decode(labels, skip_special_tokens=True)
-            
-            # Compute BLEU score
-            result = self.metric.compute(
-                predictions=decoded_preds,
-                references=[[label] for label in decoded_labels]
-            )
-            
-            return {"bleu": result["score"]}
-            
+
+            decoded_preds = [pred.strip() for pred in decoded_preds]
+            decoded_labels = [label.strip() for label in decoded_labels]
+
+            references = [[label] for label in decoded_labels]
+
+            bleu_metric = evaluate.load("bleu")
+            result = bleu_metric.compute(predictions=decoded_preds, references=references)
+
+            bleu_score = result["bleu"]
+
+            self.logger.info(f"BLEU score: {bleu_score:.4f}")
+
+            return {"bleu": bleu_score}
+
         except Exception as e:
             self.logger.error(f"Error computing metrics: {str(e)}")
             return {"bleu": 0.0}
 
     def train(self, dataset):
+        self.tokenizer.pad_token = self.tokenizer.eos_token
         try:
             # Process datasets
             processed_datasets = dataset.map(
@@ -1576,42 +1578,32 @@ class Mistral_Translator:
             )
             
             # Set up training arguments with gradient accumulation
-            training_args = Seq2SeqTrainingArguments(
-                output_dir=self.output_dir,
-                overwrite_output_dir=True,
-                evaluation_strategy="epoch",
-                learning_rate=self.learning_rate,
-                per_device_train_batch_size=self.batch_size,
-                per_device_eval_batch_size=self.batch_size,
-                gradient_accumulation_steps=4, 
-                weight_decay=self.weight_decay,
-                num_train_epochs=self.num_epochs,
-                predict_with_generate=True,
-                fp16=True,
-                save_strategy="epoch",
-                load_best_model_at_end=True,
-                metric_for_best_model="eval_bleu",
-                greater_is_better=True,
-                warmup_steps=100,
-                logging_steps=10
-            )
+
+            training_args = TrainingArguments(
+                        output_dir=self.output_dir,
+                        evaluation_strategy="epoch",
+                        logging_dir="./logs",
+                        save_strategy="epoch",
+                        learning_rate=self.learning_rate,
+                        per_device_train_batch_size=2,
+                        per_device_eval_batch_size=2,
+                        num_train_epochs=3,
+                        warmup_steps=500,
+                        weight_decay=0.01,
+                        fp16=True,  # Mixed precision training for efficiency
+                        save_total_limit=2,
+                    )
             
             # Initialize trainer
-            trainer = Seq2SeqTrainer(
+            trainer = Trainer(
                 model=self.model,
                 args=training_args,
                 train_dataset=processed_datasets["train"],
                 eval_dataset=processed_datasets["test"],
                 tokenizer=self.tokenizer,
-                data_collator=DataCollatorForSeq2Seq(
-                    tokenizer=self.tokenizer,
-                    model=self.model,
-                    padding=True,
-                    return_tensors="pt"
-                ),
                 compute_metrics=self.compute_metrics
             )
-            
+
             # Train the model
             self.logger.info("Starting training...")
             trainer.train()
@@ -1627,46 +1619,43 @@ class Mistral_Translator:
             self.logger.error(f"Error during training: {str(e)}")
             raise
 
-    def translate(self, text: str) -> str:
-        try:
-            # Prepare input
-            self.tokenizer.src_lang = self.src_lang
-            inputs = self.tokenizer(
-                text, 
-                return_tensors="pt",
-                padding=True,
-                truncation=True,
-                max_length=self.max_length
-            ).to(self.device)
-            
-            # Generate translation
-            generated_tokens = self.model.generate(
-                **inputs,
-                max_length=self.max_length,
-                num_beams=5,
-                length_penalty=1.0,
-                early_stopping=True
-            )
-            
-            # Decode and return translation
-            return self.tokenizer.batch_decode(generated_tokens, skip_special_tokens=True)[0]
-            
-        except Exception as e:
-            self.logger.error(f"Error during translation: {str(e)}")
-            raise
+    def translate(self, sentence, max_length=128):
+        prompt = f"<s>Translate the following {self.src_lang} sentence to {self.tgt_lang}.\nSentence: {sentence}.\nTranslation:"
+        print("sentence : ", sentence)
+        # Tokenize the prompt
+        inputs = self.tokenizer(prompt, return_tensors="pt").to(self.device)
 
+        # Generate the translation
+        outputs = self.model.generate(
+            inputs["input_ids"],
+            max_length=max_length,
+            num_beams=5,              
+            early_stopping=True,      
+            no_repeat_ngram_size=3,   
+            repetition_penalty=2.0,    
+            temperature=1.0,           
+            top_k=50,                 
+            top_p=0.95,                
+        )
+        raw_translation = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
+        print("raw translation : ", raw_translation)
+
+        cleaned_translation = raw_translation.split("Translation:")[-1].strip()
+
+        return cleaned_translation
+        
 class Aya_Translator:
     def __init__(
         self,
-        model_name: str = "CohereForAI/aya-23-8B",
+        model_name: str ="CohereForAI/aya-23-8B",
         max_length: int = 128,
-        batch_size: int = 8,
-        num_epochs: int = 3,
+        batch_size: int = 3,
+        num_epochs: int = 1,
         learning_rate: float = 2e-5,
         weight_decay: float = 0.01,
         output_dir: str = "./aya-translation",
-        src_lang: str = "twi",
-        tgt_lang: str = "eng",
+        src_lang: str = "TWI",
+        tgt_lang: str = "ENGLISH",
         src_col: str = "TWI",
         tgt_col: str = "ENGLISH",
         device: str = None,
@@ -1689,8 +1678,11 @@ class Aya_Translator:
         self.device = device if device else ('cuda' if torch.cuda.is_available() else 'cpu')
         
         # Initialize tokenizer and model
+
         login(token="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")
-        self.tokenizer = AutoTokenizer.from_pretrained(model_name, src_lang=self.src_lang, tgt_lang=self.tgt_lang)
+        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
+        self.tokenizer.pad_token = self.tokenizer.eos_token  # Use EOS token as PAD token
+        self.tokenizer.padding_side = "left"  # Important for XGLM
         self.model = AutoModelForCausalLM.from_pretrained(model_name)
         
         # Move model to device
@@ -1720,66 +1712,72 @@ class Aya_Translator:
         self.logger.info(f"Total parameters: {total_params:,}")
         self.logger.info(f"Trainable parameters: {trainable_params:,}")
         self.logger.info("=" * 50)
+    
+    def preprocess_function(self,examples):
+        inputs = [f"<s>You are an accurate, precise, and honest multilingul large language model that translates {self.src_lang}. Translate the following {self.src_lang} sentence to {self.tgt_lang}.\nSentence : {sentence}</s>" for sentence in examples[self.src_lang]]
+        targets = [f"<s>{translation}</s>" for translation in examples[self.tgt_lang]]
 
-    def preprocess_function(self, examples: Dict) -> Dict:
-        try:
-            # Set source language for tokenization
-            # self.tokenizer.src_lang = self.src_lang
-            inputs = [f"You are an accurate, honest, and useful multilingual language model. Your job is to translate text in {self.src_lang} to {self.tgt_lang}. Translate {text}." for text in examples[self.src_col]]
-            targets = [f"<s>{text}</s>" for text in examples[self.src_col]]
-            
-            # Tokenize inputs
-            model_inputs = self.tokenizer(
-                inputs,
-                max_length=self.max_length,
+        # Tokenize the input text (instruction + English sentence)
+        model_inputs = self.tokenizer(
+            inputs,
+            max_length=512,
+            padding="max_length",
+            truncation=True,
+        )
+
+        # Tokenize the target text (TWI translation)
+        with self.tokenizer.as_target_tokenizer():
+            labels = self.tokenizer(
+                targets,
+                max_length=512,
                 padding="max_length",
                 truncation=True,
-                return_tensors="pt"
             )
-            
-            # Tokenize targets
-            with self.tokenizer.as_target_tokenizer():
-                labels = self.tokenizer(
-                    targets,
-                    max_length=self.max_length,
-                    padding="max_length",
-                    truncation=True,
-                    return_tensors="pt"
-                )
-            
-            model_inputs["labels"] = labels["input_ids"]
-            
-            # Move tensors to device
-            model_inputs = {k: v.to(self.device) for k, v in model_inputs.items()}
-            
-            return model_inputs
-            
-        except Exception as e:
-            self.logger.error(f"Error in preprocessing: {str(e)}")
-            raise
+
+        # Assign labels and mask padding tokens with -100
+        model_inputs["labels"] = [
+            [-100 if token == self.tokenizer.pad_token_id else token for token in label]
+            for label in labels["input_ids"]
+        ]
+
+        return model_inputs
+
 
     def compute_metrics(self, eval_preds) -> Dict:
         try:
-            preds, labels = eval_preds
-            
-            # Decode predictions
-            labels = np.where(labels != -100, labels, self.tokenizer.pad_token_id)
-            decoded_preds = self.tokenizer.batch_decode(preds, skip_special_tokens=True)
+            predictions = eval_preds.predictions
+            labels = eval_preds.label_ids
+            if len(predictions.shape) == 3:  # Shape: (batch_size, sequence_length, vocab_size)
+                predictions = predictions.argmax(axis=-1)  # Take the token with the highest probability
+
+            decoded_preds = self.tokenizer.batch_decode(predictions, skip_special_tokens=True)
+
+            labels = [
+                [(token if token != -100 else self.tokenizer.pad_token_id) for token in label]
+                for label in labels
+            ]
             decoded_labels = self.tokenizer.batch_decode(labels, skip_special_tokens=True)
-            
-            # Compute BLEU score
-            result = self.metric.compute(
-                predictions=decoded_preds,
-                references=[[label] for label in decoded_labels]
-            )
-            
-            return {"bleu": result["score"]}
-            
+
+            decoded_preds = [pred.strip() for pred in decoded_preds]
+            decoded_labels = [label.strip() for label in decoded_labels]
+
+            references = [[label] for label in decoded_labels]
+
+            bleu_metric = evaluate.load("bleu")
+            result = bleu_metric.compute(predictions=decoded_preds, references=references)
+
+            bleu_score = result["bleu"]
+
+            self.logger.info(f"BLEU score: {bleu_score:.4f}")
+
+            return {"bleu": bleu_score}
+
         except Exception as e:
             self.logger.error(f"Error computing metrics: {str(e)}")
             return {"bleu": 0.0}
 
     def train(self, dataset):
+        self.tokenizer.pad_token = self.tokenizer.eos_token
         try:
             # Process datasets
             processed_datasets = dataset.map(
@@ -1789,42 +1787,32 @@ class Aya_Translator:
             )
             
             # Set up training arguments with gradient accumulation
-            training_args = Seq2SeqTrainingArguments(
-                output_dir=self.output_dir,
-                overwrite_output_dir=True,
-                evaluation_strategy="epoch",
-                learning_rate=self.learning_rate,
-                per_device_train_batch_size=self.batch_size,
-                per_device_eval_batch_size=self.batch_size,
-                gradient_accumulation_steps=4, 
-                weight_decay=self.weight_decay,
-                num_train_epochs=self.num_epochs,
-                predict_with_generate=True,
-                fp16=True,
-                save_strategy="epoch",
-                load_best_model_at_end=True,
-                metric_for_best_model="eval_bleu",
-                greater_is_better=True,
-                warmup_steps=100,
-                logging_steps=10
-            )
+
+            training_args = TrainingArguments(
+                        output_dir=self.output_dir,
+                        evaluation_strategy="epoch",
+                        logging_dir="./logs",
+                        save_strategy="epoch",
+                        learning_rate=self.learning_rate,
+                        per_device_train_batch_size=2,
+                        per_device_eval_batch_size=2,
+                        num_train_epochs=3,
+                        warmup_steps=500,
+                        weight_decay=0.01,
+                        fp16=True,  # Mixed precision training for efficiency
+                        save_total_limit=2,
+                    )
             
             # Initialize trainer
-            trainer = Seq2SeqTrainer(
+            trainer = Trainer(
                 model=self.model,
                 args=training_args,
                 train_dataset=processed_datasets["train"],
                 eval_dataset=processed_datasets["test"],
                 tokenizer=self.tokenizer,
-                data_collator=DataCollatorForSeq2Seq(
-                    tokenizer=self.tokenizer,
-                    model=self.model,
-                    padding=True,
-                    return_tensors="pt"
-                ),
                 compute_metrics=self.compute_metrics
             )
-            
+
             # Train the model
             self.logger.info("Starting training...")
             trainer.train()
@@ -1840,47 +1828,44 @@ class Aya_Translator:
             self.logger.error(f"Error during training: {str(e)}")
             raise
 
-    def translate(self, text: str) -> str:
-        try:
-            # Prepare input
-            self.tokenizer.src_lang = self.src_lang
-            inputs = self.tokenizer(
-                text, 
-                return_tensors="pt",
-                padding=True,
-                truncation=True,
-                max_length=self.max_length
-            ).to(self.device)
-            
-            # Generate translation
-            generated_tokens = self.model.generate(
-                **inputs,
-                forced_bos_token_id=self.tokenizer.get_lang_id(self.tgt_lang),
-                max_length=self.max_length,
-                num_beams=5,
-                length_penalty=1.0,
-                early_stopping=True
-            )
-            
-            # Decode and return translation
-            return self.tokenizer.batch_decode(generated_tokens, skip_special_tokens=True)[0]
-            
-        except Exception as e:
-            self.logger.error(f"Error during translation: {str(e)}")
-            raise
+    def translate(self, sentence, max_length=128):
+        prompt = f"<s>Translate the following {self.src_lang} sentence to {self.tgt_lang}.\nSentence: {sentence}.\nTranslation:"
+        print("sentence : ", sentence)
+        # Tokenize the prompt
+        inputs = self.tokenizer(prompt, return_tensors="pt").to(self.device)
+
+        # Generate the translation
+        outputs = self.model.generate(
+            inputs["input_ids"],
+            max_length=max_length,
+            num_beams=5,              
+            early_stopping=True,      
+            no_repeat_ngram_size=3,   
+            repetition_penalty=2.0,    
+            temperature=1.0,           
+            top_k=50,                 
+            top_p=0.95,                
+        )
+        raw_translation = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
+        print("raw translation : ", raw_translation)
+
+        cleaned_translation = raw_translation.split("Translation:")[-1].strip()
+
+        return cleaned_translation
+
         
 class XGLM_Translator:
     def __init__(
         self,
-        model_name: str = "facebook/xglm-564M",
+        model_name: str ="facebook/xglm-564M",
         max_length: int = 128,
         batch_size: int = 8,
         num_epochs: int = 3,
         learning_rate: float = 2e-5,
         weight_decay: float = 0.01,
         output_dir: str = "./xglm-translation",
-        src_lang: str = "twi",
-        tgt_lang: str = "eng",
+        src_lang: str = "TWI",
+        tgt_lang: str = "ENGLISH",
         src_col: str = "TWI",
         tgt_col: str = "ENGLISH",
         device: str = None,
@@ -1903,8 +1888,11 @@ class XGLM_Translator:
         self.device = device if device else ('cuda' if torch.cuda.is_available() else 'cpu')
         
         # Initialize tokenizer and model
-        login(token="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")
-        self.tokenizer = AutoTokenizer.from_pretrained(model_name, src_lang=self.src_lang, tgt_lang=self.tgt_lang)
+
+
+        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
+        self.tokenizer.pad_token = self.tokenizer.eos_token  # Use EOS token as PAD token
+        self.tokenizer.padding_side = "left"  # Important for XGLM
         self.model = AutoModelForCausalLM.from_pretrained(model_name)
         
         # Move model to device
@@ -1934,66 +1922,72 @@ class XGLM_Translator:
         self.logger.info(f"Total parameters: {total_params:,}")
         self.logger.info(f"Trainable parameters: {trainable_params:,}")
         self.logger.info("=" * 50)
+    
+    def preprocess_function(self,examples):
+        inputs = [f"<s>You are an accurate, precise, and honest multilingul large language model that translates {self.src_lang}. Translate the following {self.src_lang} sentence to {self.tgt_lang}.\nSentence : {sentence}</s>" for sentence in examples[self.src_lang]]
+        targets = [f"<s>{translation}</s>" for translation in examples[self.tgt_lang]]
 
-    def preprocess_function(self, examples: Dict) -> Dict:
-        try:
-            # Set source language for tokenization
-            # self.tokenizer.src_lang = self.src_lang
-            inputs = [f"You are an accurate, honest, and useful multilingual language model. Your job is to translate text in {self.src_lang} to {self.tgt_lang}. Translate {text}." for text in examples[self.src_col]]
-            targets = [f"<s>{text}</s>" for text in examples[self.src_col]]
-            
-            # Tokenize inputs
-            model_inputs = self.tokenizer(
-                inputs,
-                max_length=self.max_length,
+        # Tokenize the input text (instruction + English sentence)
+        model_inputs = self.tokenizer(
+            inputs,
+            max_length=512,
+            padding="max_length",
+            truncation=True,
+        )
+
+        # Tokenize the target text (TWI translation)
+        with self.tokenizer.as_target_tokenizer():
+            labels = self.tokenizer(
+                targets,
+                max_length=512,
                 padding="max_length",
                 truncation=True,
-                return_tensors="pt"
             )
-            
-            # Tokenize targets
-            with self.tokenizer.as_target_tokenizer():
-                labels = self.tokenizer(
-                    targets,
-                    max_length=self.max_length,
-                    padding="max_length",
-                    truncation=True,
-                    return_tensors="pt"
-                )
-            
-            model_inputs["labels"] = labels["input_ids"]
-            
-            # Move tensors to device
-            model_inputs = {k: v.to(self.device) for k, v in model_inputs.items()}
-            
-            return model_inputs
-            
-        except Exception as e:
-            self.logger.error(f"Error in preprocessing: {str(e)}")
-            raise
+
+        # Assign labels and mask padding tokens with -100
+        model_inputs["labels"] = [
+            [-100 if token == self.tokenizer.pad_token_id else token for token in label]
+            for label in labels["input_ids"]
+        ]
+
+        return model_inputs
+
 
     def compute_metrics(self, eval_preds) -> Dict:
         try:
-            preds, labels = eval_preds
-            
-            # Decode predictions
-            labels = np.where(labels != -100, labels, self.tokenizer.pad_token_id)
-            decoded_preds = self.tokenizer.batch_decode(preds, skip_special_tokens=True)
+            predictions = eval_preds.predictions
+            labels = eval_preds.label_ids
+            if len(predictions.shape) == 3:  # Shape: (batch_size, sequence_length, vocab_size)
+                predictions = predictions.argmax(axis=-1)  # Take the token with the highest probability
+
+            decoded_preds = self.tokenizer.batch_decode(predictions, skip_special_tokens=True)
+
+            labels = [
+                [(token if token != -100 else self.tokenizer.pad_token_id) for token in label]
+                for label in labels
+            ]
             decoded_labels = self.tokenizer.batch_decode(labels, skip_special_tokens=True)
-            
-            # Compute BLEU score
-            result = self.metric.compute(
-                predictions=decoded_preds,
-                references=[[label] for label in decoded_labels]
-            )
-            
-            return {"bleu": result["score"]}
-            
+
+            decoded_preds = [pred.strip() for pred in decoded_preds]
+            decoded_labels = [label.strip() for label in decoded_labels]
+
+            references = [[label] for label in decoded_labels]
+
+            bleu_metric = evaluate.load("bleu")
+            result = bleu_metric.compute(predictions=decoded_preds, references=references)
+
+            bleu_score = result["bleu"]
+
+            self.logger.info(f"BLEU score: {bleu_score:.4f}")
+
+            return {"bleu": bleu_score}
+
         except Exception as e:
             self.logger.error(f"Error computing metrics: {str(e)}")
             return {"bleu": 0.0}
 
     def train(self, dataset):
+        self.tokenizer.pad_token = self.tokenizer.eos_token
         try:
             # Process datasets
             processed_datasets = dataset.map(
@@ -2003,42 +1997,32 @@ class XGLM_Translator:
             )
             
             # Set up training arguments with gradient accumulation
-            training_args = Seq2SeqTrainingArguments(
-                output_dir=self.output_dir,
-                overwrite_output_dir=True,
-                evaluation_strategy="epoch",
-                learning_rate=self.learning_rate,
-                per_device_train_batch_size=self.batch_size,
-                per_device_eval_batch_size=self.batch_size,
-                gradient_accumulation_steps=4, 
-                weight_decay=self.weight_decay,
-                num_train_epochs=self.num_epochs,
-                predict_with_generate=True,
-                fp16=True,
-                save_strategy="epoch",
-                load_best_model_at_end=True,
-                metric_for_best_model="eval_bleu",
-                greater_is_better=True,
-                warmup_steps=100,
-                logging_steps=10
-            )
+
+            training_args = TrainingArguments(
+                        output_dir=self.output_dir,
+                        evaluation_strategy="epoch",
+                        logging_dir="./logs",
+                        save_strategy="epoch",
+                        learning_rate=self.learning_rate,
+                        per_device_train_batch_size=2,
+                        per_device_eval_batch_size=2,
+                        num_train_epochs=3,
+                        warmup_steps=500,
+                        weight_decay=0.01,
+                        fp16=True,  # Mixed precision training for efficiency
+                        save_total_limit=2,
+                    )
             
             # Initialize trainer
-            trainer = Seq2SeqTrainer(
+            trainer = Trainer(
                 model=self.model,
                 args=training_args,
                 train_dataset=processed_datasets["train"],
                 eval_dataset=processed_datasets["test"],
                 tokenizer=self.tokenizer,
-                data_collator=DataCollatorForSeq2Seq(
-                    tokenizer=self.tokenizer,
-                    model=self.model,
-                    padding=True,
-                    return_tensors="pt"
-                ),
                 compute_metrics=self.compute_metrics
             )
-            
+
             # Train the model
             self.logger.info("Starting training...")
             trainer.train()
@@ -2054,35 +2038,31 @@ class XGLM_Translator:
             self.logger.error(f"Error during training: {str(e)}")
             raise
 
-    def translate(self, text: str) -> str:
-        try:
-            # Prepare input
-            self.tokenizer.src_lang = self.src_lang
-            inputs = self.tokenizer(
-                text, 
-                return_tensors="pt",
-                padding=True,
-                truncation=True,
-                max_length=self.max_length
-            ).to(self.device)
-            
-            # Generate translation
-            generated_tokens = self.model.generate(
-                **inputs,
-                forced_bos_token_id=self.tokenizer.get_lang_id(self.tgt_lang),
-                max_length=128,
-                num_beams=5,
-                length_penalty=1.0,
-                early_stopping=True
-            )
-            
-            # Decode and return translation
-            return self.tokenizer.batch_decode(generated_tokens, skip_special_tokens=True)[0]
-            
-        except Exception as e:
-            self.logger.error(f"Error during translation: {str(e)}")
-            raise
+    def translate(self, sentence, max_length=128):
+        prompt = f"<s>Translate the following {self.src_lang} sentence to {self.tgt_lang}.\nSentence: {sentence}.\nTranslation:"
+        print("sentence : ", sentence)
+        # Tokenize the prompt
+        inputs = self.tokenizer(prompt, return_tensors="pt").to(self.device)
 
+        # Generate the translation
+        outputs = self.model.generate(
+            inputs["input_ids"],
+            max_length=max_length,
+            num_beams=5,              
+            early_stopping=True,      
+            no_repeat_ngram_size=3,   
+            repetition_penalty=2.0,    
+            temperature=1.0,           
+            top_k=50,                 
+            top_p=0.95,                
+        )
+        raw_translation = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
+        print("raw translation : ", raw_translation)
+
+        cleaned_translation = raw_translation.split("Translation:")[-1].strip()
+
+        return cleaned_translation
+        
 class Falcon_Translator:
     def __init__(
         self,
