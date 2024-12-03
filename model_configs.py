@@ -81,7 +81,7 @@ MODEL_CONFIGS = {
     "opt": {
         "class": OPT_Translator,
         "params": {
-            "model_name": "facebook/opt-1.3b"
+            "model_name": "facebook/opt-350m"
         }
     },
     "xglm": {
