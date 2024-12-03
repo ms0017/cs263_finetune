@@ -1090,7 +1090,7 @@ class Llama_Translator:
         self.logger.info("=" * 50)
     
     def preprocess_function(self,examples):
-        inputs = [f"<s>Instruction: Translate the following {self.src_lang} sentence to {self.tgt_lang}.\nSentence: {sentence}</s>" for sentence in examples[self.src_lang]]
+        inputs = [f"<s>You are an accurate, precise, and honest multilingul large language model that translates {self.src_lang}. Translate the following {self.src_lang} sentence to {self.tgt_lang}.\nSentence : {sentence}</s>" for sentence in examples[self.src_lang]]
         targets = [f"<s>{translation}</s>" for translation in examples[self.tgt_lang]]
 
         # Tokenize the input text (instruction + English sentence)
@@ -1205,8 +1205,8 @@ class Llama_Translator:
             raise
 
     def translate(self, sentence, max_length=128):
-        prompt = f"<s>Instruction: Translate the following {self.src_lang} sentence to {self.tgt_lang} with only translated sentence without the explanation.\nSentence: {sentence}.\nTranslation:"
-
+        prompt = f"<s>Translate the following {self.src_lang} sentence to {self.tgt_lang}.\nSentence: {sentence}.\nTranslation:"
+        print("sentence : ", sentence)
         # Tokenize the prompt
         inputs = self.tokenizer(prompt, return_tensors="pt").to(self.device)
 
@@ -1223,6 +1223,7 @@ class Llama_Translator:
             top_p=0.95,                
         )
         raw_translation = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
+        print("raw translation : ", raw_translation)
 
         cleaned_translation = raw_translation.split("Translation:")[-1].strip()
 
