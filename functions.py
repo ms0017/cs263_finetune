@@ -1445,8 +1445,8 @@ class Mistral_Translator:
         self,
         model_name: str ="mistralai/Mistral-7B-Instruct-v0.1",
         max_length: int = 128,
-        batch_size: int = 3,
-        num_epochs: int = 1,
+        batch_size: int = 8,
+        num_epochs: int = 3,
         learning_rate: float = 2e-5,
         weight_decay: float = 0.01,
         output_dir: str = "./mistral-translation",
@@ -1654,8 +1654,8 @@ class Aya_Translator:
         self,
         model_name: str ="CohereForAI/aya-23-8B",
         max_length: int = 128,
-        batch_size: int = 3,
-        num_epochs: int = 1,
+        batch_size: int = 8,
+        num_epochs: int = 3,
         learning_rate: float = 2e-5,
         weight_decay: float = 0.01,
         output_dir: str = "./aya-translation",
@@ -1810,6 +1810,7 @@ class Aya_Translator:
                 weight_decay=0.01,
                 fp16=True, 
                 save_total_limit=2,
+                remove_unused_columns=False
             )
             
             # Initialize trainer
