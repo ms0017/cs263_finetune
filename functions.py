@@ -90,49 +90,168 @@ def import_data(name, subset=-1):
 def evaluate_model(translator, dataset, src_col, tgt_col, logger, subset):
     try:
         test_sample = dataset['test'].shuffle(seed=42).select(range(subset))
-        results = []
         
+        # Collect all translations
         logger.info("Generating translations for test sample...")
+        all_translations = []
+        all_references = []
+        source_texts = []
+        
         for instance in tqdm(test_sample):
             src_text = instance[src_col]
             reference_english = instance[tgt_col]
-            
-            # Generate translation
             translated = translator.translate(src_text)
-            
-            # Calculate BLEU score for this translation
-            try:
-                bleu_result = translator.metric.compute(
-                    predictions=[translated],
-                    references=[[reference_english]]
-                )
-            except ZeroDivisionError as e:
-                bleu_result = {"bleu": 0.0}
-                logging.warning(f"ZeroDivisionError in BLEU calculation: {e}")
-                logging.warning(f"{reference_english} -> {translated}")
+
+            all_translations.append(translated)
+            all_references.append(reference_english)  # Remove nested list
+            source_texts.append(src_text)
+        
+        # Initialize metrics dictionary
+        metrics = {
+            'bleu': 0.0,
+            'sacrebleu': 0.0,
+            'comet': 0.0,
+            'meteor': 0.0
+        }
+        
+        # Regular BLEU
+        try:
+            corpus_bleu = translator.metric.compute(
+                predictions=all_translations,
+                references=[[ref] for ref in all_references]  # Ensure correct format
+            )
+            metrics['bleu'] = corpus_bleu['bleu'] if corpus_bleu else 0.0
+        except Exception as e:
+            logger.error(f"Error calculating BLEU: {str(e)}")
+
+        # SacreBLEU
+        try:
+            sacrebleu = evaluate.load("sacrebleu")
+            sacrebleu_score = sacrebleu.compute(
+                predictions=all_translations,
+                references=[all_references]
+            )
+            metrics['sacrebleu'] = sacrebleu_score['score']
+        except Exception as e:
+            logger.error(f"Error calculating SacreBLEU: {str(e)}")
+
+        # COMET
+        try:
+            comet = evaluate.load('comet')
+            comet_score = comet.compute(
+                predictions=all_translations,
+                references=all_references,
+                sources=source_texts
+            )
+            metrics['comet'] = np.mean(comet_score['scores'])
+        except Exception as e:
+            logger.error(f"Error calculating COMET: {str(e)}")
+
+        # METEOR
+        try:
+            meteor = evaluate.load('meteor')
+            meteor_score = meteor.compute(
+                predictions=all_translations,
+                references=all_references
+            )
+            metrics['meteor'] = meteor_score['meteor']
+        except Exception as e:
+            logger.error(f"Error calculating METEOR: {str(e)}")
+
+        # Calculate bootstrap confidence intervals with error handling
+        bootstrap_metrics = {
+            'bleu': [],
+            'sacrebleu': [],
+            'comet': [],
+            'meteor': []
+        }
+        
+        n_bootstrap = 100
+        sample_size = len(all_translations)
+        
+        if sample_size > 0:  # Only perform bootstrap if we have samples
+            for _ in range(n_bootstrap):
+                indices = np.random.choice(sample_size, size=sample_size, replace=True)
+                bootstrap_translations = [all_translations[i] for i in indices]
+                bootstrap_references = [all_references[i] for i in indices]
+                bootstrap_sources = [source_texts[i] for i in indices]
                 
-            # Extract BLEU score
-            bleu_score = bleu_result['bleu'] if 'bleu' in bleu_result else 0.0
-            
-            # Store results
+                try:
+                    # BLEU bootstrap
+                    bleu = translator.metric.compute(
+                        predictions=bootstrap_translations,
+                        references=[[ref] for ref in bootstrap_references]
+                    )
+                    if bleu and 'bleu' in bleu:
+                        bootstrap_metrics['bleu'].append(bleu['bleu'])
+                    
+                    # SacreBLEU bootstrap
+                    sb_score = sacrebleu.compute(
+                        predictions=bootstrap_translations,
+                        references=[bootstrap_references]
+                    )
+                    bootstrap_metrics['sacrebleu'].append(sb_score['score'])
+                    
+                    # COMET bootstrap
+                    comet_score = comet.compute(
+                        predictions=bootstrap_translations,
+                        references=bootstrap_references,
+                        sources=bootstrap_sources
+                    )
+                    bootstrap_metrics['comet'].append(np.mean(comet_score['scores']))
+                    
+                    # METEOR bootstrap
+                    meteor_score = meteor.compute(
+                        predictions=bootstrap_translations,
+                        references=bootstrap_references
+                    )
+                    bootstrap_metrics['meteor'].append(meteor_score['meteor'])
+                
+                except Exception as e:
+                    logger.error(f"Error in bootstrap iteration: {str(e)}")
+                    continue
+
+        # Calculate confidence intervals with safety checks
+        confidence_intervals = {}
+        for metric, scores in bootstrap_metrics.items():
+            if scores:  # Only calculate if we have scores
+                confidence_intervals[metric] = np.percentile(scores, [2.5, 97.5])
+            else:
+                confidence_intervals[metric] = [0.0, 0.0]  # Default values if no scores
+        
+        # Store results
+        results = []
+        for src, ref, trans in zip(source_texts, all_references, all_translations):
             results.append({
-                'source': src_text,
-                'reference': reference_english,
-                'translation': translated,
-                'bleu_score': bleu_score
+                'source': src,
+                'reference': ref,
+                'translation': trans,
+                'bleu': metrics['bleu'],
+                'sacrebleu': metrics['sacrebleu'],
+                'comet': metrics['comet'],
+                'meteor': metrics['meteor']
             })
         
         # Calculate aggregate metrics
-        bleu_scores = [r['bleu_score'] for r in results]
         aggregate_metrics = {
-            'metric': ['average_bleu', 'max_bleu', 'min_bleu', 'num_samples'],
-            'value': [
-                sum(bleu_scores) / len(bleu_scores) if bleu_scores else 0.0,
-                max(bleu_scores) if bleu_scores else 0.0,
-                min(bleu_scores) if bleu_scores else 0.0,
-                len(results)
-            ]
+            'metric': [],
+            'value': [],
+            'ci_lower': [],
+            'ci_upper': []
         }
+        
+        for metric_name in metrics.keys():
+            aggregate_metrics['metric'].append(metric_name)
+            aggregate_metrics['value'].append(metrics[metric_name])
+            ci = confidence_intervals.get(metric_name, [0.0, 0.0])
+            aggregate_metrics['ci_lower'].append(ci[0])
+            aggregate_metrics['ci_upper'].append(ci[1])
+        
+        # Add number of samples
+        aggregate_metrics['metric'].append('num_samples')
+        aggregate_metrics['value'].append(len(results))
+        aggregate_metrics['ci_lower'].append(None)
+        aggregate_metrics['ci_upper'].append(None)
         
         # Save results and metrics
         results_path = os.path.join(translator.output_dir, 'sample_translations.csv')
@@ -149,29 +268,33 @@ def evaluate_model(translator, dataset, src_col, tgt_col, logger, subset):
         logger.info(f"Metrics saved to {metrics_path}")
         
         # Log example translations
-        logger.info("\nExample Translations:")
-        logger.info("-" * 50)
-        for _, row in results_df.head().iterrows():
-            logger.info(f"Source: {row['source']}")
-            logger.info(f"Reference: {row['reference']}")
-            logger.info(f"Translation: {row['translation']}")
-            logger.info(f"BLEU Score: {row['bleu_score']:.2f}")
+        if results:
+            logger.info("\nExample Translations:")
             logger.info("-" * 50)
+            for _, row in results_df.head().iterrows():
+                logger.info(f"Source: {row['source']}")
+                logger.info(f"Reference: {row['reference']}")
+                logger.info(f"Translation: {row['translation']}")
+                logger.info(f"BLEU: {row['bleu']:.4f}")
+                logger.info(f"SacreBLEU: {row['sacrebleu']:.4f}")
+                logger.info(f"COMET: {row['comet']:.4f}")
+                logger.info(f"METEOR: {row['meteor']:.4f}")
+                logger.info("-" * 50)
         
         # Log aggregate metrics
         logger.info("\nAggregate Metrics:")
-        for _, row in metrics_df.iterrows():
-            metric_name = row['metric']
-            value = row['value']
-            if metric_name != 'num_samples':
-                logger.info(f"{metric_name}: {value:.2f}")
-            else:
-                logger.info(f"{metric_name}: {int(value)}")
+        for metric_name in metrics.keys():
+            logger.info(f"{metric_name.upper()}: {metrics[metric_name]:.4f}")
+            if metric_name in confidence_intervals:
+                ci = confidence_intervals[metric_name]
+                logger.info(f"95% CI: [{ci[0]:.4f}, {ci[1]:.4f}]")
+        logger.info(f"Number of samples: {len(results)}")
+        
+        return metrics, confidence_intervals, results
         
     except Exception as e:
         logger.error(f"Error during sample translation: {str(e)}", exc_info=True)
         raise
-
 # %%
 class mBART_Translator:
     def __init__(
@@ -1140,6 +1263,9 @@ class Llama_Translator:
 
             decoded_preds = [pred.strip() for pred in decoded_preds]
             decoded_labels = [label.strip() for label in decoded_labels]
+
+            self.logger.info(f"Labels: {decoded_labels}")
+            self.logger.info(f"Predictions: {decoded_preds}")
 
             references = [[label] for label in decoded_labels]
 
