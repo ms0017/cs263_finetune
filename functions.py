@@ -133,7 +133,7 @@ def evaluate_model(translator, dataset, src_col, tgt_col, logger, subset):
             sacrebleu = evaluate.load("sacrebleu")
             sacrebleu_score = sacrebleu.compute(
                 predictions=all_translations,
-                references=[all_references]
+                references=[[ref] for ref in all_references]
             )
             metrics['sacrebleu'] = sacrebleu_score['score']
         except Exception as e:
@@ -173,7 +173,7 @@ def evaluate_model(translator, dataset, src_col, tgt_col, logger, subset):
         n_bootstrap = 100
         sample_size = len(all_translations)
         
-        if sample_size > 0:  # Only perform bootstrap if we have samples
+        if sample_size > 0:
             for _ in range(n_bootstrap):
                 indices = np.random.choice(sample_size, size=sample_size, replace=True)
                 bootstrap_translations = [all_translations[i] for i in indices]
@@ -192,7 +192,7 @@ def evaluate_model(translator, dataset, src_col, tgt_col, logger, subset):
                     # SacreBLEU bootstrap
                     sb_score = sacrebleu.compute(
                         predictions=bootstrap_translations,
-                        references=[bootstrap_references]
+                        references=[[ref] for ref in bootstrap_references]
                     )
                     bootstrap_metrics['sacrebleu'].append(sb_score['score'])
                     
@@ -299,6 +299,7 @@ def evaluate_model(translator, dataset, src_col, tgt_col, logger, subset):
     except Exception as e:
         logger.error(f"Error during sample translation: {str(e)}", exc_info=True)
         raise
+
 # %%
 class mBART_Translator:
     def __init__(

@@ -53,7 +53,7 @@ def run_translation_pipeline(model_name, translator, dataset, logger):
             src_col=translator.src_col,
             tgt_col=translator.tgt_col,
             logger=logger,
-            subset=2
+            subset=10
         )
         
         # Save training completion status
@@ -72,7 +72,7 @@ def run_translation_pipeline(model_name, translator, dataset, logger):
 if __name__ == "__main__":
     src_col = "ENGLISH"
     tgt_col = "TWI"
-    dataset = import_data('IssakaAI/en-tw', subset=10)
+    dataset = import_data('IssakaAI/en-tw', subset=100)
     
     for model_name in tqdm(MODEL_CONFIGS):
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")

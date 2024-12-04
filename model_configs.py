@@ -30,63 +30,63 @@ MODEL_CONFIGS = {
             "requires_login": True
         }
     },
-    # "m2m": {
-    #     "class": M2M_Translator,
+    "m2m": {
+        "class": M2M_Translator,
+        "params": {
+            "model_name": "facebook/m2m100_1.2B",
+            "src_lang": "en",
+            "tgt_lang": "fr"
+        }
+    },
+    "mbart": {
+        "class": mBART_Translator,
+        "params": {
+            "model_name": "facebook/mbart-large-50",
+            "src_lang": "en_XX",
+            "tgt_lang": "twi_GH"
+        }
+    },
+    # "mistral": {
+    #     "class": Mistral_Translator,
     #     "params": {
-    #         "model_name": "facebook/m2m100_1.2B",
-    #         "src_lang": "en",
-    #         "tgt_lang": "fr"
+    #         "model_name": "mistralai/Mistral-7B-Instruct-v0.1",
+    #         "batch_size": 1
     #     }
     # },
-    # "mbart": {
-    #     "class": mBART_Translator,
+    "mt5": {
+        "class": mT5_Translator,
+        "params": {
+            "model_name": "google/mt5-small",
+            "requires_gpu_config": True
+        }
+    },
+    "nllb": {
+        "class": NLLB_Translator,
+        "params": {
+            "model_name": "facebook/nllb-200-3.3B",
+            "src_lang": "eng_Latn",
+            "tgt_lang": "twi_Latn"
+        }
+    },
+    "opt": {
+        "class": OPT_Translator,
+        "params": {
+            "model_name": "facebook/opt-350m"
+        }
+    },
+    "xglm": {
+        "class": XGLM_Translator,
+        "params": {
+            "model_name": "facebook/xglm-564M",
+        }
+    },
+    # "falcon": {
+    #     "class": Falcon_Translator,
     #     "params": {
-    #         "model_name": "facebook/mbart-large-50",
-    #         "src_lang": "en_XX",
-    #         "tgt_lang": "twi_GH"
+    #         "model_name": "tiiuae/falcon-7b",
+    #         "requires_login": True
     #     }
-    # },
-    # # "mistral": {
-    # #     "class": Mistral_Translator,
-    # #     "params": {
-    # #         "model_name": "mistralai/Mistral-7B-Instruct-v0.1",
-    # #         "batch_size": 1
-    # #     }
-    # # },
-    # "mt5": {
-    #     "class": mT5_Translator,
-    #     "params": {
-    #         "model_name": "google/mt5-small",
-    #         "requires_gpu_config": True
-    #     }
-    # },
-    # "nllb": {
-    #     "class": NLLB_Translator,
-    #     "params": {
-    #         "model_name": "facebook/nllb-200-3.3B",
-    #         "src_lang": "eng_Latn",
-    #         "tgt_lang": "twi_Latn"
-    #     }
-    # },
-    # "opt": {
-    #     "class": OPT_Translator,
-    #     "params": {
-    #         "model_name": "facebook/opt-350m"
-    #     }
-    # },
-    # "xglm": {
-    #     "class": XGLM_Translator,
-    #     "params": {
-    #         "model_name": "facebook/xglm-564M",
-    #     }
-    # },
-    # # "falcon": {
-    # #     "class": Falcon_Translator,
-    # #     "params": {
-    # #         "model_name": "tiiuae/falcon-7b",
-    # #         "requires_login": True
-    # #     }
-    # # }
+    # }
 }
 
 for model_config in MODEL_CONFIGS.values():
