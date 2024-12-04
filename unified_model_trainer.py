@@ -11,6 +11,9 @@ from model_configs import MODEL_CONFIGS
 warnings.filterwarnings('ignore')
 gc.collect()
 torch.cuda.empty_cache()
+torch.set_float32_matmul_precision('high')
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
+os.environ['PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION'] = 'python'
 
 # Centralized configuration
 def create_translator(base_config, output_dir, logger, src_col, tgt_col):

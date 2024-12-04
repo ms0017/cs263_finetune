@@ -1255,8 +1255,8 @@ class Llama_Translator:
         try:
             predictions = eval_preds.predictions
             labels = eval_preds.label_ids
-            if len(predictions.shape) == 3:  # Shape: (batch_size, sequence_length, vocab_size)
-                predictions = predictions.argmax(axis=-1)  # Take the token with the highest probability
+            if len(predictions.shape) == 3:
+                predictions = predictions.argmax(axis=-1)
 
             decoded_preds = self.tokenizer.batch_decode(predictions, skip_special_tokens=True)
 
@@ -1269,8 +1269,11 @@ class Llama_Translator:
             decoded_preds = [pred.strip() for pred in decoded_preds]
             decoded_labels = [label.strip() for label in decoded_labels]
 
-            self.logger.info(f"Labels: {decoded_labels}")
-            self.logger.info(f"Predictions: {decoded_preds}")
+            # log the first few examples
+            for i in range(3):
+                self.logger.info(f"Prediction: {decoded_preds[i]}")
+                self.logger.info(f"Reference: {decoded_labels[i]}")
+                self.logger.info("=" * 50)
 
             references = [[label] for label in decoded_labels]
 
