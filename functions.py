@@ -90,6 +90,10 @@ def import_data(name, subset=-1):
 def evaluate_model(translator, dataset, src_col, tgt_col, logger, subset):
     try:
         test_sample = dataset['test'].shuffle(seed=42).select(range(subset))
+
+        # log src_col and tgt_col
+        logger.info(f"Source column: {src_col}")
+        logger.info(f"Target column: {tgt_col}")
         
         # Collect all translations
         logger.info("Generating translations for test sample...")
@@ -103,7 +107,7 @@ def evaluate_model(translator, dataset, src_col, tgt_col, logger, subset):
             translated = translator.translate(src_text)
 
             all_translations.append(translated)
-            all_references.append(reference_english)  # Remove nested list
+            all_references.append(reference_english)
             source_texts.append(src_text)
         
         # Initialize metrics dictionary
@@ -118,7 +122,7 @@ def evaluate_model(translator, dataset, src_col, tgt_col, logger, subset):
         try:
             corpus_bleu = translator.metric.compute(
                 predictions=all_translations,
-                references=[[ref] for ref in all_references]  # Ensure correct format
+                references=[[ref] for ref in all_references]
             )
             metrics['bleu'] = corpus_bleu['bleu'] if corpus_bleu else 0.0
         except Exception as e:

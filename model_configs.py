@@ -9,10 +9,10 @@ SHARED_PARAMS = {
     "max_length": 128,
     "learning_rate": 1e-5,
     "weight_decay": 0.01,
-    "batch_size": 64,
+    "batch_size": 32,
     "num_epochs": 1,
-    "src_lang": "TWI",
-    "tgt_lang": "ENGLISH",
+    "src_lang": "ENGLISH", 
+    "tgt_lang": "TWI",
 }
 
 MODEL_CONFIGS = {
@@ -34,16 +34,16 @@ MODEL_CONFIGS = {
     #     "class": M2M_Translator,
     #     "params": {
     #         "model_name": "facebook/m2m100_1.2B",
-    #         "src_lang": "fr",
-    #         "tgt_lang": "en"
+    #         "src_lang": "en",
+    #         "tgt_lang": "fr"
     #     }
     # },
     # "mbart": {
     #     "class": mBART_Translator,
     #     "params": {
     #         "model_name": "facebook/mbart-large-50",
-    #         "src_lang": "twi_GH",
-    #         "tgt_lang": "en_XX"
+    #         "src_lang": "en_XX",
+    #         "tgt_lang": "twi_GH"
     #     }
     # },
     # # "mistral": {
@@ -64,8 +64,8 @@ MODEL_CONFIGS = {
     #     "class": NLLB_Translator,
     #     "params": {
     #         "model_name": "facebook/nllb-200-3.3B",
-    #         "src_lang": "twi_Latn",
-    #         "tgt_lang": "eng_Latn"
+    #         "src_lang": "eng_Latn",
+    #         "tgt_lang": "twi_Latn"
     #     }
     # },
     # "opt": {
