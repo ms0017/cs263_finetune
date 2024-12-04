@@ -66,6 +66,20 @@ def initialize_logs(logs_dir, output_dir_name):
     logger.info(f"Log file location: {log_file}")
     logger.info("=" * 50)
 
+    logging.getLogger("lightning.pytorch.utilities.rank_zero").setLevel(logging.WARNING)
+    logging.getLogger("lightning.pytorch.accelerators.cuda").setLevel(logging.WARNING)
+
+
+    pl_logger = logging.getLogger('pytorch_lightning.utilities.rank_zero')
+    class IgnorePLFilter(logging.Filter):
+        def filter(self, record):
+            return not any(msg in record.getMessage() for msg in [
+                'available:', 
+                'TPU available',
+                'HPU available'
+            ])
+    pl_logger.addFilter(IgnorePLFilter())
+
     return logger
 
 # %%
