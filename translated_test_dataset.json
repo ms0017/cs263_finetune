@@ -1,0 +1,502 @@
+[
+    {
+        "ENGLISH": "And Jesus, having known their thoughts, said, “Why think evil in your hearts",
+        "GROUND_TRUTH_TWI": "Yesu hunuu deɛ ɛwɔ wɔn adwenem no, ɔbisaa wɔn sɛ, “Adɛn enti na modwene bɔne ho saa",
+        "TRANSLATED_TWI": "Na Yesu hunuu nea da wɔn adwene mu, ɔka kyerɛɛ wɔn sɛ, “Adɛn enti na mo adwene mu dɔ bɔne yi"
+    },
+    {
+        "ENGLISH": "And Saul discerns the voice of David and says, “Is this your voice, my son David?” And David says, “My voice, my lord, O king!”",
+        "GROUND_TRUTH_TWI": "Saulo tee Dawid nne enti ɔfrɛɛ sɛ, “Wo nie me ba Dawid?” Na Dawid buaa no sɛ, “Nana, ɛyɛ me",
+        "TRANSLATED_TWI": "Na Saulo huu Dawid no, ɔfrɛɛ no ɔfrɛɛ no sɛ, “Ɛyɛ wo ankasa?” Na Dawid frɛɛ no sɛ, “Yɛ; Ɔhene m’awurade.”"
+    },
+    {
+        "ENGLISH": "It's important for today's young people to study english.",
+        "GROUND_TRUTH_TWI": "ɛho hia sɛ nnɛyi mmɔfra sua Potɔ kasa kasa.",
+        "TRANSLATED_TWI": "ɛho hia sɛ mmerante ne mmabaa antwerɛ kasa ɔsua Twere."
+    },
+    {
+        "ENGLISH": "from that land he has gone out to Asshur, and builds Nineveh, even the broad places of the city, and Calah",
+        "GROUND_TRUTH_TWI": "Ɔfirii saa asase no so trɛɛ nʼahennie mu kɔɔ Asiria, kɔkyekyeree Ninewe. Rehobot-Ir, Kala ne",
+        "TRANSLATED_TWI": "Ɛfiri Asiria ohini no sɛ, ɔkyinkyinii kɔsii Ninewe, Rehobot Ir, Kala"
+    },
+    {
+        "ENGLISH": "according to all that we listened to from Moses, so we listen to you; surely your God YHWH is with you as He has been with Moses",
+        "GROUND_TRUTH_TWI": "Yɛbɛyɛ ɔsetie ama wo sɛdeɛ yɛyɛ maa Mose no. Awurade wo Onyankopɔn, nni wʼakyi sɛdeɛ ɔdii Mose akyi no",
+        "TRANSLATED_TWI": "Moses hyɛɛ yɛn sɛ yɛnyɛ biribiara a wotum de yɛnsi dwuma no nyinaa, yɛayɛ, na yɛn nso, yei ara, yɛbɛyɛ bi wɔ Ahyiaeɛ Ntomadan mu no biara. Awurade wo Onyankopɔn, deɛ barohasi no, ɔno ara yei so no"
+    },
+    {
+        "ENGLISH": "It is not valued with pure gold of Ophir, With precious onyx and sapphire",
+        "GROUND_TRUTH_TWI": "Wɔrentumi mfa Ofir sikakɔkɔɔ ntɔ apopobibirieboɔ anaa aboɔdemmoɔ nso saa ara",
+        "TRANSLATED_TWI": "Ɛnyɛ ɛgɔmemɔ a ɛwɔ Ofir na bɛn ne petenes na samina"
+    },
+    {
+        "ENGLISH": "And now, behold, I—bound in the Spirit—go on to Jerusalem, not knowing the things that will befall me in it",
+        "GROUND_TRUTH_TWI": "“Afei, ɛsiane sɛ Honhom Kronkron ahyɛ me no enti, merekɔ Yerusalem a mennim asɛm a ɛbɛto me wɔ hɔ",
+        "TRANSLATED_TWI": "Ɛnnɛ, mantua honam, nanso onipa menni no mu, wɔ ɛnam Honhom kronkron so ma yɛn kɔ Yerusalem"
+    },
+    {
+        "ENGLISH": "And the sons of Israel have dwelt in the midst of the Canaanite, the Hittite, and the Amorite, and the Perizzite, and the Hivite, and the Jebusite",
+        "GROUND_TRUTH_TWI": "Enti, Israelfoɔ no tenaa Kanaanfoɔ, Hetifoɔ, Amorifoɔ, Perisifoɔ, Hewifoɔ ne Yebusifoɔ no mu",
+        "TRANSLATED_TWI": "Enti, Israelfoɔ tenaa Kaananimfuo, Hetifoɔ, Amorifoɔ, Perisifoɔ, Hiwifoɔ ne Yebusifoɔ mu"
+    },
+    {
+        "ENGLISH": "Behold, I have been brought forth in iniquity, And my mother conceives me in sin",
+        "GROUND_TRUTH_TWI": "Ampa ara wɔwoo me wɔ bɔne mu, na bɔne mu na me maame nyinsɛnee me",
+        "TRANSLATED_TWI": "Na efi ɔbaabunu kwan so na wɔde bɛyɛɛ me yii me adi, Na daa ɛyɛ bɔne na me maame woo me"
+    },
+    {
+        "ENGLISH": "Paul, and Silvanus, and Timotheus, to the assembly of Thessalonians in God the Father and the Lord Jesus Christ: Grace to you and peace from God our Father and the Lord Jesus Christ",
+        "GROUND_TRUTH_TWI": "Nwoma yi firi Paulo, Silas ne Timoteo nkyɛn, Yɛde kɔma Tesalonika asafo a wɔyɛ Agya Onyankopɔn ne Awurade Yesu Kristo mma no: Adom ne asomdwoeɛ nka mo",
+        "TRANSLATED_TWI": "Yɛ Paul, Silas ne Timoteo, yɛde krataa yi rekɔma asafo a ɛwɔ Tesalonika a ɛwɔ Agya Onyankopɔn ne Awurade Yesu Kristo mu no sɛ: Yɛn da Onyankopɔn Agya ne awurade Yesu Kristo ase saa ahina no ara. Yɛbɔ mpaeɛ ma mo, na yɛkae mo berɛ nyinaa"
+    },
+    {
+        "ENGLISH": "For thus said YHWH: “You have been sold for nothing, And you are redeemed without money.”",
+        "GROUND_TRUTH_TWI": "Na yei ne deɛ Awurade seɛ: “Wɔantɔn wo annye hwee, na ɛnyɛ sika na wɔde bɛgye wo.”",
+        "TRANSLATED_TWI": "Awurade seɛ: “Moyɛ adasamma a wɔantua mo ho hwee; wobɛgye mo ama a wɔrantua hwee nso.”"
+    },
+    {
+        "ENGLISH": "for I am persuaded that neither death, nor life, nor messengers, nor principalities, nor powers, nor things present",
+        "GROUND_TRUTH_TWI": "Megye medi ampa sɛ owuo anaa nkwa anaa abɔfoɔ anaa atumfoɔ anaa nneɛma a ɛwɔ hɔ anaa nneɛma a ɛrebɛba anaa tumi",
+        "TRANSLATED_TWI": "Efisɛ, manim sɛ ɛhɔ nni baabi a owuo anaa nkwa anaa abɔfoɔ anaa atumfoɔ anaa nnwuma wɔ hɔ a ɛbɛtumi ayii obi adi"
+    },
+    {
+        "ENGLISH": "It is all Greek to me.",
+        "GROUND_TRUTH_TWI": "ɛno ara ne Hela kasa.",
+        "TRANSLATED_TWI": "ɛsiane sɛ ɛyɛ ɔbɛntuo maa me."
+    },
+    {
+        "ENGLISH": "And the Ziphites come to Saul at Gibeah, saying, “Is David not hiding himself in the height of Hachilah, on the front of the desert?”",
+        "GROUND_TRUTH_TWI": "Sififoɔ kɔɔ Saulo nkyɛn wɔ Gibea kɔka kyerɛɛ no sɛ, “Dawid akɔhinta ne ho wɔ Hakila bepɔ a ɛkyerɛ Yesimon no mu.”",
+        "TRANSLATED_TWI": "Ná Dawid da te sɛ oguan berɛ a Sipfoɔ foɔ binom kɔka kyerɛɛ Saul wɔ Gibea sɛ, “Dawid de ne ho asi akwan so wɔ Hakila bepɔ no afa a ɛhwɛ Yɛsemon ɛserɛ no.”"
+    },
+    {
+        "ENGLISH": "I'll apologize later.",
+        "GROUND_TRUTH_TWI": "mɛsan apa kyɛw Akyire yi.",
+        "TRANSLATED_TWI": "mɛpata wo abɔkyire."
+    },
+    {
+        "ENGLISH": "And Jesus having taken up the word, said, “A certain man was going down from Jerusalem to Jericho, and fell among robbers, and having stripped him and inflicted blows, they went away, leaving him half dead",
+        "GROUND_TRUTH_TWI": "Yesu nso maa no mfatoho bi sɛ, “Ɛda bi na ɔbarima bi retu ɛkwan firi Yerusalem akɔ Yeriko. Na ɔnam ɛkwan so no, ɔkɔtɔɔ akwanmukafoɔ mu na wɔgyee ne ho nneɛma nyinaa, hwee no, pirapiraa no ma ɔtɔɔ baha, gyaa no too kwankyɛn kɔeɛ",
+        "TRANSLATED_TWI": "Yesu ka kyerɛɛ no sɛ, “Obi kɔɔ Yerusalem kɔɔ Yeriko ɛkwan so, ankyɛ na nnebɔneyɛfoɔ bi bɔɔ no. Wɔsii nʼakyi, deɛ ɔwɔ nyinaa gyee, de piri noo so sanee no, wɔfaa ne ntadeɛ, bobɔɔ no mɔteeɛ, gyaw no, no nua amono mono"
+    },
+    {
+        "ENGLISH": "year",
+        "GROUND_TRUTH_TWI": "afe",
+        "TRANSLATED_TWI": "afe."
+    },
+    {
+        "ENGLISH": "Their seed is established, Before their face with them, And their offspring before their eyes",
+        "GROUND_TRUTH_TWI": "Wɔhunu wɔn mma a atwa wɔn ho ahyia no nkɔsoɔ, wɔhunu wɔn nananom",
+        "TRANSLATED_TWI": "Wɔn mmammarima danHonhom Kronkron no ma hɔn ahenkyɛ, Na wɔn asefoɔ hyɛ wɔn ani so"
+    },
+    {
+        "ENGLISH": "We will not go with you",
+        "GROUND_TRUTH_TWI": "Yɛne wo nkɔ",
+        "TRANSLATED_TWI": "yɛne wo remma"
+    },
+    {
+        "ENGLISH": "I want you to talk to Kwaku.",
+        "GROUND_TRUTH_TWI": "mepɛ sɛ wo ne Kwaku kasa.",
+        "TRANSLATED_TWI": "Mepɛ sɛ woreka Kwaku."
+    },
+    {
+        "ENGLISH": "Judge me according to Your righteousness, O YHWH my God, And they do not rejoice over me",
+        "GROUND_TRUTH_TWI": "Di mʼasɛm ma me wɔ wo tenenee no mu, Ao Awurade me Onyankopɔn; mma wɔn nhwɛ me haa nsere",
+        "TRANSLATED_TWI": "Ao Awurade, me Onyankopɔn, di me asɛm, na ɛnsɛ sɛ wɔdi me ho ahurisie"
+    },
+    {
+        "ENGLISH": "That applies to Kwaku toɔo.",
+        "GROUND_TRUTH_TWI": "ɛno fa Kwaku nso ho.",
+        "TRANSLATED_TWI": "Saa no ara na Kwaku bi nkoaa nso yɛ."
+    },
+    {
+        "ENGLISH": "He stalled the engine three times.",
+        "GROUND_TRUTH_TWI": "ɔde pɛtro guu afidie no emu mprɛnsa.",
+        "TRANSLATED_TWI": "ɔsɔree booden no mprɛnsa."
+    },
+    {
+        "ENGLISH": "Hadid, Zeboim, Neballat",
+        "GROUND_TRUTH_TWI": "Hadid, Seboim, Nebalat",
+        "TRANSLATED_TWI": "Hadid, Seboim, Nebalat"
+    },
+    {
+        "ENGLISH": "Yes, I like mangoes",
+        "GROUND_TRUTH_TWI": "Aane mepɛ amango",
+        "TRANSLATED_TWI": "Aane, mɛpɛ mango."
+    },
+    {
+        "ENGLISH": "Remember you are under oath.",
+        "GROUND_TRUTH_TWI": "Kae sɛ woka ntam.",
+        "TRANSLATED_TWI": "Fa w'ani kyerɛ sɛ ɔbɛyi retew."
+    },
+    {
+        "ENGLISH": "The prospects for Japan's future look dismal.",
+        "GROUND_TRUTH_TWI": "Japan daakye bɛyɛ nea anidasoɔ biara nnim.",
+        "TRANSLATED_TWI": "Anidasoɔ a wɔwɔ fa Japan daakye ho no, adwaree."
+    },
+    {
+        "ENGLISH": "And Moses says to his father-in-law, “Because the people come to me to seek God",
+        "GROUND_TRUTH_TWI": "Mose buaa sɛ, “Nnipa no de akasakasa bi a asisi wɔn ntam bɛtoo mʼanim sɛ memmisa Onyankopɔn akwankyerɛ",
+        "TRANSLATED_TWI": "Afei, Mose buaa sɛ, “Ɛyɛ nanso, meyɛ obi a nnipa yi petiatia me sɛ mafa Onyankopɔn nkyɛnnua mu brɛ wɔn amo"
+    },
+    {
+        "ENGLISH": "I'd like to determine the value of this painting.",
+        "GROUND_TRUTH_TWI": "mepɛ sɛ mehu mfasoɔɔ a ɛwɔ mfoni Yi so.",
+        "TRANSLATED_TWI": "meresɛ mese nsɛm a wɔnam so bu adeɛ yi ano."
+    },
+    {
+        "ENGLISH": "and it comes to pass, at the commencement of their dwelling there, they have not feared YHWH, and YHWH sends the lions among them, and they are destroying among them",
+        "GROUND_TRUTH_TWI": "Nanso, ɛsiane sɛ saa ahɔhoɔ atutenafoɔ yi ansom Awurade ɛberɛ a wɔduruu hɔ ara pɛ no enti, Awurade maa agyata kɔɔ wɔn mu, kɔkunkumm wɔn mu bi",
+        "TRANSLATED_TWI": "Na wofrɛɛ wɔn ɔmanfoɔ foforɔ no kɔɔ sa, Awurade sentwaan gyata kɔsɛee wɔn nuabaa mu dabiara"
+    },
+    {
+        "ENGLISH": "I must wait here.",
+        "GROUND_TRUTH_TWI": "Ɛsɛ sɛ metwɛn wɔ ha.",
+        "TRANSLATED_TWI": "ɛsɛ sɛ mete ha."
+    },
+    {
+        "ENGLISH": "I said nothing of the sort.",
+        "GROUND_TRUTH_TWI": "manka bibiaa ete saa.",
+        "TRANSLATED_TWI": "mannka saa biara."
+    },
+    {
+        "ENGLISH": "I don't know how you can believe such nosenese.",
+        "GROUND_TRUTH_TWI": "mennim sɛnea wogye nsuosuwii hunu a ɛte saa adi.",
+        "TRANSLATED_TWI": "mentumi nkyerɛ hwɛ Adeɛ a Woreyi Adie akyidie wɔ emu dɛɛ."
+    },
+    {
+        "ENGLISH": "A wicked man has hardened by his face, And the upright—he prepares his way",
+        "GROUND_TRUTH_TWI": "Amumuyɛfoɔ di akakabensɛm na ɔteneneeni deɛ, ɔdwene nʼakwan ho",
+        "TRANSLATED_TWI": "Ɔbadwemma hwɛ biribiara abrɛ mu; deɛ ɔteɛ no de ahobammɔ kane"
+    },
+    {
+        "ENGLISH": "The good harvest brought down the price of rice.",
+        "GROUND_TRUTH_TWI": "aba pa a wotwaa no maa ɛmo boɔ so teeɛ.",
+        "TRANSLATED_TWI": "Ɛberɛ a na wɔnnya ebuorɔ nnɔbae no bɛtɔe nso ntomaa."
+    },
+    {
+        "ENGLISH": "we took advantage of the fine weather to play tennis.",
+        "GROUND_TRUTH_TWI": "yɛde ewiem tebea a ɛyɛ fɛ no dii dwuma de bɔɔ bɔɔl.",
+        "TRANSLATED_TWI": "yɛn kɔɔ egyaeɛ no so bɔɔ tɛnis"
+    },
+    {
+        "ENGLISH": "Be silent, you inhabitants of the island, Trader of Sidon, passing the sea, they filled you",
+        "GROUND_TRUTH_TWI": "Monyɛ komm, mo nnipa a mowɔ supɔ no so ne mo Sidon adwadifoɔ a ɛpo so adwumayɛfoɔ ama mo ayɛ adefoɔ",
+        "TRANSLATED_TWI": "Monsɛ obiara mu, ao mona a mote asase no so; mo a mosepɔ ngo bɛkɔsi Sidon mo tamfoɔ koo mu, monyɛ komm"
+    },
+    {
+        "ENGLISH": "And it comes to pass afterward, that Ben-Hadad king of Aram gathers all his camp, and goes up, and lays siege to Samaria",
+        "GROUND_TRUTH_TWI": "Akyire no, Aramhene Ben-Hadad boaboaa nʼakodɔm nyinaa ano, de wɔn kɔtuaa Samaria",
+        "TRANSLATED_TWI": "Ɛberɛ bi akyi, Aramhene Ben-Hadad boaboaa ne asraafoɔ ano kɔtuaa Samaria ho"
+    },
+    {
+        "ENGLISH": "asamoah is romantic.",
+        "GROUND_TRUTH_TWI": "asamoah yɛ obi a ɔpɛ ɔbarima ne ɔbaa ntam dɔ.",
+        "TRANSLATED_TWI": "asamoah yɛ ɔdɔ ni."
+    },
+    {
+        "ENGLISH": "Fire is going out without wood, And contention ceases without a tale-bearer",
+        "GROUND_TRUTH_TWI": "Yensin hi a, ogya dum; nsekuro nni hɔ a ntɔkwa toɔ twa",
+        "TRANSLATED_TWI": "Sɛ ɛsrade ana maka ⌞sɛhedie⌟ biara nni hɔ a, na ɔkongyimaa tɔ wɔn, na sɛ ɔhyeɛ ɔkrofoɔ biara nni hɔ a, na nsɛm pɔmpɔm nso tɔ"
+    },
+    {
+        "ENGLISH": "These questions are easy to answer.",
+        "GROUND_TRUTH_TWI": "nsɛmmisa yi ho mmuae yɛ mmerɛ.",
+        "TRANSLATED_TWI": "ɛyɛ mmerɛ sɛ wobɛtia nsɛm yi."
+    },
+    {
+        "ENGLISH": "Why did you give up the idea of learning French?",
+        "GROUND_TRUTH_TWI": "adeɛn nti na wubuu w'ani guu Franse kasa sua so?",
+        "TRANSLATED_TWI": "deɛn nti na wanyinii n'adwene fri wo ntesɛm sō?"
+    },
+    {
+        "ENGLISH": "Of these, twenty-four thousand are to preside over the work of the house of YHWH, and six thousand officers and judges",
+        "GROUND_TRUTH_TWI": "Na Dawid kaa sɛ, “Wɔn mu mpem aduonu ɛnan bɛhwɛ Awurade Asɔredan no ho adwuma so. Mpem nsia bɛsom sɛ mpanimfoɔ ne atemmufoɔ",
+        "TRANSLATED_TWI": "Ɛno mu ɛnana (24,000) yɛ asɛnkafoɔ ne asɔfoɔ adwumayɛfoɔ, ɛnnommum (6,000) nso yɛ ɛserɛne akodeɛ ne akwaanufoɔ"
+    },
+    {
+        "ENGLISH": "Fill out this form.",
+        "GROUND_TRUTH_TWI": "Kyerɛ saa krataa yi emu",
+        "TRANSLATED_TWI": "ma wo ho hyɛ saa tĩntĩi yi mu"
+    },
+    {
+        "ENGLISH": "and he says to him, “Thus said YHWH: Because you have sent away the man I devoted, out of your hand, even your life has been for his life, and your people for his people”",
+        "GROUND_TRUTH_TWI": "Na odiyifoɔ no ka kyerɛɛ no sɛ, “Sɛdeɛ Awurade seɛ nie: Esiane sɛ woagyaa ɔbarima a mekaa sɛ, ɛsɛ sɛ wɔkum no no enti, ɛsɛ sɛ wɔkum wo seesei si nʼanan mu. Na anka ɛsɛ sɛ ne nkurɔfoɔ na mokunkum wɔn, na mmom, wo nkurɔfoɔ na wɔbɛkunkum wɔn.”",
+        "TRANSLATED_TWI": "Hyɛn so Ⲉyɛ, a Awurade se saa na ɔka sɛ, “Esiane sɛ wama onipa a mehyɛ nʼatemmuoɔ no agye adi, enti, wo nkwa bɛkyɛ ama ne dea. Wʼamanɔne nso bɛkyɛ ama ne dea.”"
+    },
+    {
+        "ENGLISH": "in the morning you say, O that it were evening! And in the evening you say, O that it were morning! (From the fear of your heart, with which you are afraid, and from the sight of your eyes which you see.)",
+        "GROUND_TRUTH_TWI": "Anɔpa mobɛka sɛ, “Sɛ ɛyɛɛ anadwo a!” Na anwummerɛ nso mobɛka sɛ, “Sɛ ɛyɛɛ anɔpa a!” Mobɛka saa, ɛfiri sɛ, mohunu sɛ ehu atwa mo ho ahyia",
+        "TRANSLATED_TWI": "Anɔpa yei, bɛka seɛ, ‘Sɛ anwummere pɛɛ!’ Dabiara a ayaresa ne deɛ wʼani hu no enti, wʼakoma bɛdi wo ho wɔn na wʼani bɛwuo."
+    },
+    {
+        "ENGLISH": "Cows give milk.",
+        "GROUND_TRUTH_TWI": "anantwie ma nufusuo.",
+        "TRANSLATED_TWI": "mmirekyie no gyaa ɛsiano."
+    },
+    {
+        "ENGLISH": "And by faith Sarah, herself barren, received power to conceive seed even after the time of life, seeing she judged Him who promised faithful",
+        "GROUND_TRUTH_TWI": "Gyidie enti na Sara nso de nyaa tumi nyinsɛnee, ɛberɛ a na wanyini na ɔntumi nwo no. Ɔde ne ho too Onyankopɔn so sɛ ɔbɛdi ne bɔhyɛ so",
+        "TRANSLATED_TWI": "Nea nka gyidie no a ɛyɛ na ɛnam so nti, Sara a nʼawotwa wɔ ɛberɛ no kɔeɛ no anya tete maa ɛmaa abeawa. Na Sara ani gyee sɛ Onyankopɔn nkyɛmuchinɛfoɔ no yɛ ɔkarikari"
+    },
+    {
+        "ENGLISH": "Let's see if we can do it without any help.",
+        "GROUND_TRUTH_TWI": "ma yɛnhwɛ sɛ yɛbɛtumi ayɛ a mmoa biara nka ho anaa.",
+        "TRANSLATED_TWI": "Ma yɛnhwɛ sɛ wɔbɛtu yɛn mfitumi."
+    },
+    {
+        "ENGLISH": "don't get left behind.",
+        "GROUND_TRUTH_TWI": "nnyae wo hɔ wↄ akyi.",
+        "TRANSLATED_TWI": "Nfa dɔm no mu."
+    },
+    {
+        "ENGLISH": "This train gets to Chicago at 9 o'clock toɔnight.",
+        "GROUND_TRUTH_TWI": "Saa keteke yi kɔ Chicago anadwo dɔn kron.",
+        "TRANSLATED_TWI": "Saa ɔhyɛnhyɛntene no bɛduru Chicago anɔpa yemmienu."
+    },
+    {
+        "ENGLISH": "“so that they believe that YHWH, God of their fathers, has appeared to you, God of Abraham, God of Isaac, and God of Jacob.”",
+        "GROUND_TRUTH_TWI": "Awurade ka kyerɛɛ no sɛ, “Kɔyɛ saa na wɔbɛgye wo adi. Ɛbɛma wɔahunu sɛ wo agyanom Abraham, Isak ne Yakob Onyankopɔn ada ne ho adi akyerɛ wo ampa",
+        "TRANSLATED_TWI": "ɛnam yei so na wɔbɛgye adi sɛ, Awurade Onyankopɔn a yɛn agyanom no deɛ ɔyɛ Abraham Onyankopɔn, Isak Onyankopɔn ne Yakob Onyankopɔn no na wahohoro wo no.”"
+    },
+    {
+        "ENGLISH": "He looked up at the ceiling.",
+        "GROUND_TRUTH_TWI": "ɔhwɛɛ mpoma no emu.",
+        "TRANSLATED_TWI": "ɔhwɛɛ ofie no afoo soro."
+    },
+    {
+        "ENGLISH": "yet the high places have not been removed from Israel; only, the heart of Asa has been perfect all his days",
+        "GROUND_TRUTH_TWI": "Ɛwom sɛ wɔantutu abosonsom asɔreeɛ no nyinaa amfiri Israel deɛ, nanso Asa de ne ho nyinaa maa Awurade ne nkwa nna nyinaa",
+        "TRANSLATED_TWI": "Ɛbɛsi ne wuo owuo a, Asa de ne ho maa Awurade nyinaa. Nanso, ɔsii sɛdeɛ ɛteɛ a, otumi annu akwankyerɛɛ no mu sei"
+    },
+    {
+        "ENGLISH": "Where is the boys?",
+        "GROUND_TRUTH_TWI": "Abarimaa no wɔ he?",
+        "TRANSLATED_TWI": "mmafirifoɔ no wɔ he?"
+    },
+    {
+        "ENGLISH": "They have hatched eggs of a viper, And weave webs of a spider, Whoever is eating their eggs dies, and the crushed hatches a viper",
+        "GROUND_TRUTH_TWI": "Wɔhwane ananka nkosua na wɔnwono ananse ntontan. Deɛ ɔdi wɔn nkosua biara bɛwu, emu baako nso bɔ a, ɛpae ahuritia",
+        "TRANSLATED_TWI": "Wɔabɔ afɔre a firi afurukan; wɔasa ntentan a wɔfiri ntwerɛma. Obiara a ɔdidi wɔn afɔre no bewu, na afurukan befirifiri mefio nso"
+    },
+    {
+        "ENGLISH": "And it comes to pass, when the king sat in his house, and YHWH has given rest to him all around, from all his enemies",
+        "GROUND_TRUTH_TWI": "Ɛberɛ a wɔbɔɔ ɔhene no atenaseɛ wɔ nʼahemfie na Awurade ama asomdwoeɛ aba asase no so no",
+        "TRANSLATED_TWI": "Da koro a na ɔhene no te ne fie na Awurade ahwɛ ma obu ne nnommumfoɔ nyinaa so dwoodwoo"
+    },
+    {
+        "ENGLISH": "Neither joy nor sorrow can last forever.",
+        "GROUND_TRUTH_TWI": "anigyeɛ ne awerɛhoɔ biara ntumi ntra hɔ daa.",
+        "TRANSLATED_TWI": "anigyeɛ anaa awerɛhoɔ biara rentena hɔ da."
+    },
+    {
+        "ENGLISH": "one bullock, a son of the herd, one ram, one lamb, a son of a year, for a burnt-offering",
+        "GROUND_TRUTH_TWI": "Ɔde nantwie ba, odwennini ne odwammaanini a wadi afe baeɛ sɛ ɔhyeɛ afɔdeɛ",
+        "TRANSLATED_TWI": "ɔkrakye baako, odwennini baako ne odwennini baako a ɔwɔ mfeɛ baako bɛyɛ ɔhyeɛ afɔrebɔ"
+    },
+    {
+        "ENGLISH": "And the Messenger of YHWH calls to him from the heavens and says, “Abraham, Abraham”; and he says, “Here I am”",
+        "GROUND_TRUTH_TWI": "Ɛhɔ ara na Awurade ɔbɔfoɔ frɛɛ no firi soro sɛ, “Abraham! Abraham!” Ɛnna Abraham gyee so sɛ, “Me nie.”",
+        "TRANSLATED_TWI": "Nanso, Awurade ɔbɔfoɔ frɛɛ no firii soro sɛ Abraham, Abraham!” ɔkaeɛ sɛ, “Mɛte wɔ ha.”"
+    },
+    {
+        "ENGLISH": "and behold, Moses and Elijah appeared to them, talking together with Him",
+        "GROUND_TRUTH_TWI": "Prɛko pɛ, Mose ne Elia bɛfirii hɔ a wɔne Yesu rekasa",
+        "TRANSLATED_TWI": "Na Onyankopɔn mu nhunuu wɔn Aaron ne Mose. Saa nsɛm yi mpo da mu seneɛ Aaron ne abusuakuo no a na wɔatwe wɔn anya de wɔn adane abosonsom mu ɔhene"
+    },
+    {
+        "ENGLISH": "I waited three hours.",
+        "GROUND_TRUTH_TWI": "metwɛnee nnɔnhwere mmiɛnsa.",
+        "TRANSLATED_TWI": "Mɔdane na metwɛn ɔbosome miɛnsa."
+    },
+    {
+        "ENGLISH": "And I have left you in the land, I cast you out on the face of the field, And I have caused every bird of the heavens to dwell on you, And have satisfied every beast of the earth with you",
+        "GROUND_TRUTH_TWI": "Mɛto wo atwene asase no so na mahuri wo ato ɛserɛ so. Mɛma ewiem nnomaa nyinaa abɛsisi wo so na asase so mmoa nyinaa adi wo nam ɔherɛ so",
+        "TRANSLATED_TWI": "Mɛhwie ahene nnuaman na makyɛ wo fɔnoo prɛko, na mɛma wʼasetena mu nnipa nyinaa nwe wo. Mede wo bɛma wuramwuram mmoa nyinaa sɛnam"
+    },
+    {
+        "ENGLISH": "she or he is truthful all the time",
+        "GROUND_TRUTH_TWI": "ɔdi nokware dabiara",
+        "TRANSLATED_TWI": "ɔno na wɔne no di apɛn daa"
+    },
+    {
+        "ENGLISH": "The soup is boiling.",
+        "GROUND_TRUTH_TWI": "Nkwan no rehuru.",
+        "TRANSLATED_TWI": "nkraneeɛ no resia."
+    },
+    {
+        "ENGLISH": "and you have said, Thus said Lord YHWH: Behold, I am against you, O Sidon, And I have been honored in your midst, And they have known that I am YHWH, In My doing judgments in her, And I have been sanctified in her",
+        "GROUND_TRUTH_TWI": "na ka sɛ: ‘Yei ne deɛ Otumfoɔ Awurade seɛ: “ ‘Me ne wo anya, Ao Sidon na mɛnya animuonyam wɔ wo mu. Wɔbɛhunu sɛ mene Awurade no, ɛberɛ a mede asotwe aba wo so na mada me ho adi sɛ ɔkronkronni wɔ wo mu",
+        "TRANSLATED_TWI": "Ka sɛ, ‘Sɛdeɛ Awurade tumfoɔ hwɛ, “Ɛnneɛ, hwɛ! Na magyina wo, Sidon. Ɛberɛ a mawo mʼanimuonyam wɔ wo mu na wɔbɛhunu sɛ mene deɛ Awurade. Na meretri wo animuonyam wɔ wo mu no, mɛbɔ atɛn wɔ wo mu aa"
+    },
+    {
+        "ENGLISH": "And he says to Him, “If Your presence is not going—do not take us up from this place",
+        "GROUND_TRUTH_TWI": "Nanso Mose kaa sɛ, “Sɛ wo ne yɛn renkɔ deɛ a, mma yɛnntu yɛn nan mfiri ha",
+        "TRANSLATED_TWI": "Mose buaa sɛ, “Sɛ woankodii yɛn anim a, ɛno deɛ, yɛrentumi annotwe mo mfiri ha"
+    },
+    {
+        "ENGLISH": "How would you describe your relationship with Kwame?",
+        "GROUND_TRUTH_TWI": "ɔkwan bɛn so na wobɛkyerɛkyerɛ wo ne Kwame ntam abusuabɔ emu?",
+        "TRANSLATED_TWI": "Akwasi ne wo ntam berɛ no bɛn?\n\n"
+    },
+    {
+        "ENGLISH": "lump",
+        "GROUND_TRUTH_TWI": "aba",
+        "TRANSLATED_TWI": "kɔkɔɔ"
+    },
+    {
+        "ENGLISH": "I was absent from the meeting.",
+        "GROUND_TRUTH_TWI": "na minnya kwan nkɔ asafo nhyiamu.",
+        "TRANSLATED_TWI": "mankɔ nhyiamu no."
+    },
+    {
+        "ENGLISH": "And they say to one another, “Behold, this man of the dreams comes",
+        "GROUND_TRUTH_TWI": "Wɔkeka kyerɛkyerɛɛ wɔn ho wɔn ho sɛ, “Monhwɛ! Ɔdaeɛsofoɔ no na ɔreba no",
+        "TRANSLATED_TWI": "Wɔhunuu no no, wɔmaa wɔn ho nyinaa so ka kyerɛɛ wɔn ho sɛ, “Monhwɛ so na deɛ ɔda so soo daeɛ yi aba biɔ"
+    },
+    {
+        "ENGLISH": "And he says, “YHWH does not save you—from where do I save you? Out of the threshing-floor or out of the wine-vat?”",
+        "GROUND_TRUTH_TWI": "Ɔbuaa no sɛ, “Sɛ Awurade ammoa wo a, ɛdeɛn na mɛtumi ayɛ? Menni aduane anaa nsa a mede bɛma wo.”",
+        "TRANSLATED_TWI": "Ɔkaeɛ sɛ, “Ɛkwan bɛn na Awurade nam so bɛboa mo? Mo ankasa ohene deɛ, ɛkwan bɛn na wantumi anfa so aboa mo? Me deɛ, meretumi ahwɛ mma atoko beaeɛ anaa adaka a, nanso, menni hɔ.”"
+    },
+    {
+        "ENGLISH": "Asamoah toɔld me he doesn't want to work with you.",
+        "GROUND_TRUTH_TWI": "Sɛnea Asamoah ka kyerɛɛ me no, ɔmpɛ sɛ ɔne wo yɛ adwuma.",
+        "TRANSLATED_TWI": "Asamoah kaa sɛ ɔmpɛ sɛ ɔyɛ adwuma wo ho."
+    },
+    {
+        "ENGLISH": "Our advice is that the company invest in new equipment.",
+        "GROUND_TRUTH_TWI": "yɛn'afutuo ne sɛ adwumakuo no de nneɛma foforɔ di dwuma.",
+        "TRANSLATED_TWI": "Yɛabisa wɔn mmoa sɛ wɔmfa mmoa mma kuropɔn foforɔ ase."
+    },
+    {
+        "ENGLISH": "Counsel and substance are mine, I am understanding, I have might",
+        "GROUND_TRUTH_TWI": "Afotuo ne atemmuo pa wɔ me; mewɔ nteaseɛ ne tumi",
+        "TRANSLATED_TWI": "Afɔbuɔ ne anaafoɔ, yie ne ahoɔden nyinaa wɔ me nkyɛn"
+    },
+    {
+        "ENGLISH": "and also thus the king has said, Blessed is YHWH, God of Israel, who has given one sitting on my throne today, and my eyes are seeing.”",
+        "GROUND_TRUTH_TWI": "na ɔkaa saa nsɛm yi, ‘Nhyira nka Awurade , Israel Onyankopɔn, a ɛnnɛ da yi wayi obi sɛ ɔntena mʼahennwa so wɔ ɛberɛ a mete ase, na mehunu deɛ ɛrekɔ so nyinaa.’ ”",
+        "TRANSLATED_TWI": "“Momma nnipakuo mmɔ Agyenkwa Awurade no aseda. Ɔbɛma ɔde mʼahenni no ama Salomo. Sɛdeɛ morete nie.”"
+    },
+    {
+        "ENGLISH": "I like milk more than juice.",
+        "GROUND_TRUTH_TWI": "mepɛ nufusuo sene nsuo.",
+        "TRANSLATED_TWI": "ɔtoɔ aaso sene nkasɛsslɛ."
+    },
+    {
+        "ENGLISH": "This morning I got up toɔo late to have breakfast.",
+        "GROUND_TRUTH_TWI": "Saa anɔpa yi, na aka akyi dodo sɛ medi aduane.",
+        "TRANSLATED_TWI": "Εnnora meyɛɛ basabasa kɔ sii berɛ a anadwo adu."
+    },
+    {
+        "ENGLISH": "asamoah and araba are in the library.",
+        "GROUND_TRUTH_TWI": "asamoah ne araba wɔ nwomakorabea hɔ.",
+        "TRANSLATED_TWI": "asamoah ne araba wɔ bukuoanom."
+    },
+    {
+        "ENGLISH": "it's a fox",
+        "GROUND_TRUTH_TWI": "ɛyɛ sakraman",
+        "TRANSLATED_TWI": "ɛyɛ odi"
+    },
+    {
+        "ENGLISH": "I sojourn in Your tent for all ages, I trust in the secret place of Your wings. Selah",
+        "GROUND_TRUTH_TWI": "Me kɔn dɔ sɛ metena wo ntomadan no mu afebɔɔ na manya hintabea wɔ wo ntaban nwunu ase",
+        "TRANSLATED_TWI": "Mɛtenatena wo ntamadan mu afebɔɔ; mɛkɔ guan agyapadeɛ ase."
+    },
+    {
+        "ENGLISH": "Among rocks, he has cleaved brooks, And his eye has seen every precious thing",
+        "GROUND_TRUTH_TWI": "Ɔtwa aka fa abotan mu, na ɔhunu nʼademudeɛ nyinaa",
+        "TRANSLATED_TWI": "Ɔboro mmɔtsɛm ano pae mu ayinyin asubɔne, na nʼani hwɛ oheneɛ nyinaa"
+    },
+    {
+        "ENGLISH": "He was cured of his bad habits.",
+        "GROUND_TRUTH_TWI": "ɔnyaa ayaresa wɔ ne subammɔne no ho.",
+        "TRANSLATED_TWI": "wɔayɛ no ma ne suban a emu yɛ den no."
+    },
+    {
+        "ENGLISH": "I heard a shout and then a crash.",
+        "GROUND_TRUTH_TWI": "metee nteɛteɛm bi, na afei biribi sii.",
+        "TRANSLATED_TWI": "metee ahunahuna bi, na afei nnansa."
+    },
+    {
+        "ENGLISH": "Asamoah doesn't have to go anywhere.",
+        "GROUND_TRUTH_TWI": "ɛho nhia sɛ Asamoah kɔ baabi foforɔ biara te sɛ yei.",
+        "TRANSLATED_TWI": "ɛnsɛ sɛ Asamoah kɔ baabiara."
+    },
+    {
+        "ENGLISH": "And all Judah is standing before YHWH, also their infants, their wives, and their sons",
+        "GROUND_TRUTH_TWI": "Ɛberɛ a Yuda mmarima nyinaa ne wɔn nkɔkoaa, wɔn yerenom ne wɔn mma gyina Awurade anim no",
+        "TRANSLATED_TWI": "Enti, Judani nyinaa hyiaa wɔ Awurade anim, wɔn mmaa ne wɔn mmammarima da so"
+    },
+    {
+        "ENGLISH": "asamoah is responding well to the new treatment.",
+        "GROUND_TRUTH_TWI": "asamoah ayaresa foforɔ no rekɔ yie.",
+        "TRANSLATED_TWI": "asamoah agye wo ayareɛ saneɛ nteteɛ foforɔ no mu yie."
+    },
+    {
+        "ENGLISH": "And YHWH speaks to Aaron, saying",
+        "GROUND_TRUTH_TWI": "Afei, Awurade hyɛɛ Aaron sɛ",
+        "TRANSLATED_TWI": "Afei, Awurade ka kyerɛɛ Aaron sɛ"
+    },
+    {
+        "ENGLISH": "The baby is asleep",
+        "GROUND_TRUTH_TWI": "Akwadaa monoono ada",
+        "TRANSLATED_TWI": "Abɔfra no ada"
+    },
+    {
+        "ENGLISH": "And I armed Egyptians against Egyptians, And they fought, each against his brother, And each against his neighbor, City against city, kingdom against kingdom",
+        "GROUND_TRUTH_TWI": "“Mɛma Misraimfoɔ atwa wɔn ho ako, onua bɛko atia onua, ɔyɔnko atia ɔyɔnko, kuropɔn atia kuropɔn, ahennie atia ahennie",
+        "TRANSLATED_TWI": "Mede Misraim bɛnan ati Misraim so; wɔde ayɛka ko atia wɔn ho. Wɔn nuanom bɛtoa ko atia wɔn ho. Wɔman de wɔman so, na wɔde ahemman nso ɛso"
+    },
+    {
+        "ENGLISH": "Because these two years the famine is in the heart of the land, and yet five years remain in which there is neither plowing nor harvest",
+        "GROUND_TRUTH_TWI": "Mfeɛ mmienu ni a ɛkɔm baa asase yi so. Mfeɛ enum a ɛreba yi nso, obiara rennua, na obiara nso rentwa",
+        "TRANSLATED_TWI": "Esiane sɛ mmerewa afa no, mfeɛ mmienu nka a, mmerewa bɛkɔ so mfeɛ mmenum nso. Afe mmenu no, nnipa ntumi nsiso aba anaa wɔantwa nsensoɛ biara"
+    },
+    {
+        "ENGLISH": "And the authorities of the sons of Israel, whom the exactors of Pharaoh have placed over them, are beaten, saying, “Why have you not completed your portion in making brick as before, both yesterday and today?”",
+        "GROUND_TRUTH_TWI": "Afei, Misraimfoɔ adwumasohwɛfoɔ no kaa Hebrifoɔ mpanimfoɔ a wɔde wɔn atuatua adwuma no ano sɛ akwankyerɛfoɔ no mmaa, bisaa wɔn sɛ, “Adɛn enti na moanwie ntayaa a wɔahyɛ sɛ montwa no nnora ne ɛnnɛ no nyinaa sɛdeɛ na moyɛ kane no?”",
+        "TRANSLATED_TWI": "Ɛbɛyɛ yi sɛ, amradoɔ a na Firao animuonyamfoɔ asiesie wɔn sɛ wɔbɛhwɛ nnwinnadeɛ no yɛ a wɔamsiw nnwinnadeɛ no satu firi wɔn so sɛ, “Adɛn enti na ɛnnɛ nyinaa moansei nnwinnadeɛ a na ɛyɛ mo dwuma ne ɛnnora deɛ nyinaa?"
+    },
+    {
+        "ENGLISH": "And by his hand Shallum son of Halohesh, head of the half of the district of Jerusalem, has strengthened, he and his daughters",
+        "GROUND_TRUTH_TWI": "Halohes babarima Salum ne ne mmammaa na wɔsiesiee ɛfa a ɛdi hɔ no. Ɔno na na ɔtua Yerusalem mansini fa a aka ano",
+        "TRANSLATED_TWI": "Salum, Halohes ba a na ɔyɛ Yuda akuraa fa so amrado no kaa hɔ. Ne mmammarima no na wɔaboaboa ano"
+    },
+    {
+        "ENGLISH": "he who is cherishing his life will lose it, and he who is hating his life in this world will keep it to continuous life",
+        "GROUND_TRUTH_TWI": "Obiara a ɔdɔ ne kra no bɛhwere ne nkwa, na deɛ ɔnnɔ ne kra no ɔbɛnya nkwa a ɛnni awieeɛ",
+        "TRANSLATED_TWI": "Obiara a ɔpɛ sɛ ɔnya nkwa no bɛsɛe; a na obiara a ɔdi nʼani ɛgu nkwa ho wɔ asaase yi so bɛnya nkwa a ɛnni awieeɛ"
+    },
+    {
+        "ENGLISH": "It’s me, Kwasi Yeboa.",
+        "GROUND_TRUTH_TWI": "Ɛyɛ me, Kwasi Yeboa.",
+        "TRANSLATED_TWI": "me ne Kwasi Yeboa."
+    },
+    {
+        "ENGLISH": "Blessed are you, O land, When your king is a son of nobles, And your princes eat in due season, For might, and not for drunkenness",
+        "GROUND_TRUTH_TWI": "Nhyira nka wo, asase a wo ɔhene yɛ ɔdehyeɛ na wo mmapɔmma didi ɛberɛ a ɛfata de pɛ ahoɔden, na ɛnyɛ nsãborɔ",
+        "TRANSLATED_TWI": "Onyankopɔn nhyira nka mo asase, mobɛnya ahennie a wʼɔdeɛ bɛdi so, na mo mpanimfoɔ bɛdi agorɔ a ɛmmoa wɔn nam twɛm ho, na ɛmmoa wɔn ani sɔ ho"
+    },
+    {
+        "ENGLISH": "I want to finish this work by five.",
+        "GROUND_TRUTH_TWI": "mepɛ sɛ mede nɔn'anum wie adwuma yi.",
+        "TRANSLATED_TWI": "ɛsɛ sɛ mewie adwuma yi na ɛresɔnn."
+    },
+    {
+        "ENGLISH": "Rebuke a beast of the reeds, a herd of bulls, With calves of the peoples, Each humbling himself with pieces of silver, You scatter peoples delighting in conflicts",
+        "GROUND_TRUTH_TWI": "Ka aboa a ɔhyɛ demmire mu no anim, ne anantwinini kuo a wɔhyɛ amanaman no anantwie mma mu no. Brɛ wɔn ase kɔsi sɛ wɔde dwetɛ mpɔ bɛba. Bɔ wɔn a wɔn ani gye ɔko ho no pansam",
+        "TRANSLATED_TWI": "Ka kɔkoraa so kɔheta no, kɔkɔ guuonam ahennifoɔ ahenemma a wɔn atadeɛ yɛ detɛ no; O mmaa kɔkoraa a wɔwɔ ego die wɔn, dwetɛ mpɔno hono nyinaa ho afuo. Amenom, nimpa asomafoɔ a wɔwɔ afaapae nni hwee"
+    },
+    {
+        "ENGLISH": "And Naomi says, “Turn back, my daughters; why do you go with me? Are there yet to me sons in my bowels that they have been to you for husbands",
+        "GROUND_TRUTH_TWI": "Nanso, Naomi kaa sɛ, “Me mma, monsane nkɔ fie. Adɛn enti na ɛsɛ sɛ mo ne me kɔ? Merekɔwo mmammarima bio a wɔbɛtumi awareware mo anaa",
+        "TRANSLATED_TWI": "Nanso, Naomi buaa wɔn sɛ, “Ahummɔborɔfoɔ mma, monkɔ. Mennim deɛ ɛsɛ sɛ mote mʼakyi anaa. Me so me tumi wɔ mma a wɔbɛyɛ mo akunufoɔ anaa"
+    },
+    {
+        "ENGLISH": "I just wanted to have a little fun.",
+        "GROUND_TRUTH_TWI": "na mepɛ sɛ megye m'ani kakra.",
+        "TRANSLATED_TWI": "na mepɛ sɛ ɛyɛ me dɛ kakra."
+    }
+]
