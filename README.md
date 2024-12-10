@@ -3,6 +3,8 @@ This project utilizes several Python libraries and Hugging Face tools to create 
 
 pip install numpy pandas torch tqdm datasets huggingface_hub transformers evaluate python-dotenv
 
+The data can be retrieved through the .env huggingface token 
+
 once all packges are install, proceed by running
 
 python3 unified_model_trainer.py which will run the training and evaluation loops.
